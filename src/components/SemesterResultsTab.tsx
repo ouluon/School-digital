@@ -867,8 +867,6 @@ export const SemesterResultsTab: React.FC<SemesterResultsTabProps> = ({
                     className={`min-h-[42px] px-3.5 rounded-xl text-xs font-semibold border transition-all duration-150 active:scale-95 whitespace-nowrap shrink-0 ${
                       selectedSubKey === sub.key
                         ? 'btn-primary border-blue-600'
-                        : sub.highlight
-                        ? 'bg-purple-50 dark:bg-purple-950/50 text-purple-900 dark:text-purple-200 border-purple-200 dark:border-purple-800/70 hover:bg-purple-100 dark:hover:bg-purple-900/60'
                         : 'bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500 hover:bg-blue-50/40 dark:hover:bg-blue-950/40'
                     }`}
                   >
@@ -1338,11 +1336,7 @@ export const SemesterResultsTab: React.FC<SemesterResultsTabProps> = ({
                           key={sub.key}
                           onClick={() => openManageColumnsModal('exam')}
                           title="ចុចដើម្បីលាក់ ឬបង្ហាញមុខវិជ្ជានេះ"
-                          className={`border border-slate-300 dark:border-slate-700 px-1 py-2 text-center h-[128px] cursor-pointer transition-colors ${
-                            sub.highlight
-                              ? 'bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100/80 dark:hover:bg-purple-900/60'
-                              : 'hover:bg-blue-50/70 dark:hover:bg-blue-950/50'
-                          }`}
+                          className="border border-slate-300 dark:border-slate-700 px-1 py-2 text-center h-[128px] cursor-pointer transition-colors hover:bg-blue-50/70 dark:hover:bg-blue-950/50"
                         >
                           <span className="vertical-th inline-block">{sub.label}</span>
                         </th>
@@ -1450,11 +1444,7 @@ export const SemesterResultsTab: React.FC<SemesterResultsTabProps> = ({
                           key={sub.key}
                           onClick={() => openManageColumnsModal('exam')}
                           title="ចុចដើម្បីលាក់ ឬបង្ហាញមុខវិជ្ជានេះ"
-                          className={`border border-slate-300 dark:border-slate-700 px-1 py-2 text-center h-[128px] cursor-pointer transition-colors ${
-                            sub.highlight
-                              ? 'bg-purple-50 dark:bg-purple-950/50 hover:bg-purple-100/80 dark:hover:bg-purple-900/60'
-                              : 'hover:bg-blue-50/70 dark:hover:bg-blue-950/50'
-                          }`}
+                          className="border border-slate-300 dark:border-slate-700 px-1 py-2 text-center h-[128px] cursor-pointer transition-colors hover:bg-blue-50/70 dark:hover:bg-blue-950/50"
                         >
                           <span className="vertical-th inline-block">{sub.label}</span>
                         </th>
@@ -1519,9 +1509,7 @@ export const SemesterResultsTab: React.FC<SemesterResultsTabProps> = ({
                       {visibleExamSubjects.map((sub) => (
                         <td
                           key={sub.key}
-                          className={`border border-slate-300 dark:border-slate-700 px-1.5 py-1.5 text-center font-mono-num ${
-                            sub.highlight ? 'bg-purple-50/60 dark:bg-purple-950/35' : ''
-                          }`}
+                          className="border border-slate-300 dark:border-slate-700 px-1.5 py-1.5 text-center font-mono-num"
                         >
                           {sScores[sub.key] ?? ''}
                         </td>
@@ -1682,11 +1670,7 @@ export const SemesterResultsTab: React.FC<SemesterResultsTabProps> = ({
                       return (
                         <label
                           key={sub.key}
-                          className={`flex items-center justify-between gap-2 border rounded-xl px-3 py-2 ${
-                            sub.highlight
-                              ? 'bg-purple-50/70 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800/70'
-                              : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700'
-                          }`}
+                          className="flex items-center justify-between gap-2 border rounded-xl px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700"
                         >
                           <span className="text-xs font-medium text-slate-700 dark:text-slate-200">
                             {sub.label}
