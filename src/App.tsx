@@ -3080,7 +3080,9 @@ export default function App() {
                 : 'text-amber-500 dark:text-amber-400'
             }`}
           />
-          <span className="text-[11px] font-semibold leading-none">ឆមាស</span>
+          <span className="text-[10px] min-[400px]:text-[11px] font-semibold leading-none whitespace-nowrap">
+            ឆមាស/ប្រចាំឆ្នាំ
+          </span>
         </button>
 
         <button
