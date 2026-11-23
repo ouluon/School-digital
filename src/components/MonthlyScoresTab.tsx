@@ -524,6 +524,12 @@ export const MonthlyScoresTab: React.FC<MonthlyScoresTabProps> = ({
 
       {entryMode === 'bySubject' && (
         <>
+          <ScoreSummaryTable
+            subtitle={`ខែ${monthLabel} ${activeYear}`}
+            maxScore={settings.maxScore}
+            entries={summaryEntries}
+          />
+
           {/* Subject Group & Sub-skill Selector */}
           <div className="w-full min-w-0 surface-card rounded-2xl p-3.5 space-y-3">
             <div>
@@ -598,12 +604,6 @@ export const MonthlyScoresTab: React.FC<MonthlyScoresTabProps> = ({
               </div>
             )}
           </div>
-
-          <ScoreSummaryTable
-            subtitle={`ខែ${monthLabel} ${activeYear}`}
-            maxScore={settings.maxScore}
-            entries={summaryEntries}
-          />
 
           {/* Search */}
           <div className="relative">

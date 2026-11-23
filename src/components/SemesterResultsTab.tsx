@@ -824,6 +824,12 @@ export const SemesterResultsTab: React.FC<SemesterResultsTabProps> = ({
 
       {entryMode === 'bySubject' && (
         <>
+          <ScoreSummaryTable
+            subtitle={isSem2 ? 'ឆមាសទី ២ និងប្រចាំឆ្នាំ' : semesterLabel}
+            maxScore={settings.maxScore}
+            entries={summaryEntries}
+          />
+
           <div className="w-full min-w-0 surface-card rounded-2xl p-3.5 space-y-3">
             <div>
               <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
@@ -957,12 +963,6 @@ export const SemesterResultsTab: React.FC<SemesterResultsTabProps> = ({
               </div>
             )}
           </div>
-
-          <ScoreSummaryTable
-            subtitle={isSem2 ? 'ឆមាសទី ២ និងប្រចាំឆ្នាំ' : semesterLabel}
-            maxScore={settings.maxScore}
-            entries={summaryEntries}
-          />
 
           <div className="relative">
             <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
