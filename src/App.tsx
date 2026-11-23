@@ -3215,7 +3215,7 @@ export default function App() {
                 : 'text-violet-500 dark:text-violet-400'
             }`}
           />
-          <span className="text-[11px] font-semibold leading-none">សិស្ស & Sheet</span>
+          <span className="text-[11px] font-semibold leading-none whitespace-nowrap">គ្រូ/សិស្ស</span>
         </button>
       </nav>
 
