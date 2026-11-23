@@ -16,6 +16,7 @@ import {
 import { TelegramButton } from './TelegramButton';
 import { CompetencyRubricModal } from './CompetencyRubricModal';
 import { HorizontalScrollStrip } from './HorizontalScrollStrip';
+import { ScoreSummaryTable, buildScoreSummaryEntry } from './ScoreSummaryTable';
 import {
   COMPETENCY_STATUS_LABELS,
   CompetencyType,
@@ -319,6 +320,21 @@ export const MonthlyScoresTab: React.FC<MonthlyScoresTabProps> = ({
   const monthLabel =
     KHMER_MONTHS.find((m) => m.value === activeMonth)?.label || '';
 
+  const summaryEntries = useMemo(
+    () => [
+      buildScoreSummaryEntry('monthly', `ខែ${monthLabel}`, students, (stu) => {
+        const res = results[stu.id];
+        const hasScore = (res?.enteredCount ?? 0) > 0 || (res?.average ?? 0) > 0;
+        return {
+          average: res?.average ?? 0,
+          grade: res?.grade ?? 'F',
+          hasScore,
+        };
+      }),
+    ],
+    [monthLabel, students, results]
+  );
+
   const isKnowledgeSubject = selectedSubject.key === 'comp_knowledge';
   const isSkillsSubject = selectedSubject.key === 'comp_skills';
   const isAttitudeSubject = selectedSubject.key === 'comp_attitude';
@@ -571,7 +587,7 @@ export const MonthlyScoresTab: React.FC<MonthlyScoresTabProps> = ({
                       onClick={() => setSelectedSubjectKey(sub.key)}
                       className={`min-h-[40px] px-3 rounded-xl text-xs font-semibold border transition-all duration-150 active:scale-95 whitespace-nowrap ${
                         selectedSubject.key === sub.key
-                          ? 'btn-dark border-slate-900 dark:border-blue-600'
+                          ? 'bg-slate-900 text-white border-slate-900 shadow-sm dark:bg-emerald-500 dark:text-slate-950 dark:border-emerald-300 dark:shadow-[0_2px_12px_-2px_rgba(16,185,129,0.5)]'
                           : 'bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'
                       }`}
                     >
@@ -582,6 +598,12 @@ export const MonthlyScoresTab: React.FC<MonthlyScoresTabProps> = ({
               </div>
             )}
           </div>
+
+          <ScoreSummaryTable
+            subtitle={`ខែ${monthLabel} ${activeYear}`}
+            maxScore={settings.maxScore}
+            entries={summaryEntries}
+          />
 
           {/* Search */}
           <div className="relative">
@@ -758,6 +780,12 @@ export const MonthlyScoresTab: React.FC<MonthlyScoresTabProps> = ({
 
       {entryMode === 'byStudent' && (
         <>
+          <ScoreSummaryTable
+            subtitle={`ខែ${monthLabel} ${activeYear}`}
+            maxScore={settings.maxScore}
+            entries={summaryEntries}
+          />
+
           <div className="relative">
             <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input

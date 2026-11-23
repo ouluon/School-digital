@@ -16,6 +16,7 @@ import {
 import { TelegramButton } from './TelegramButton';
 import { CompetencyRubricModal } from './CompetencyRubricModal';
 import { HorizontalScrollStrip } from './HorizontalScrollStrip';
+import { ScoreSummaryTable, buildScoreSummaryEntry } from './ScoreSummaryTable';
 import {
   COMPETENCY_STATUS_LABELS,
   CompetencyType,
@@ -481,6 +482,56 @@ export const SemesterResultsTab: React.FC<SemesterResultsTabProps> = ({
 
   const semesterLabel = settings.semester === 1 ? 'ឆមាសទី ១' : 'ឆមាសទី ២';
 
+  const summaryEntries = useMemo(() => {
+    const semEntry = buildScoreSummaryEntry('semester', semesterLabel, students, (stu) => {
+      const res = semesterResults[stu.id];
+      const hasScore =
+        (res?.enteredCount ?? 0) > 0 ||
+        (res?.semesterAverage ?? 0) > 0 ||
+        (res?.examAverage ?? 0) > 0 ||
+        (res?.monthlyAverage ?? 0) > 0;
+      return {
+        average: res?.semesterAverage ?? 0,
+        grade: res?.grade ?? 'F',
+        hasScore,
+      };
+    });
+
+    if (!isSem2) {
+      return [semEntry];
+    }
+
+    const annualEntry = buildScoreSummaryEntry(
+      'annual',
+      'ប្រចាំឆ្នាំ',
+      students,
+      (stu) => {
+        const s1 = semester1Results[stu.id];
+        const s2 = semesterResults[stu.id];
+        const ann = annualResults[stu.id];
+        const hasSem1 =
+          (s1?.enteredCount ?? 0) > 0 ||
+          (s1?.semesterAverage ?? 0) > 0 ||
+          (s1?.examAverage ?? 0) > 0 ||
+          (s1?.monthlyAverage ?? 0) > 0;
+        const hasSem2 =
+          (s2?.enteredCount ?? 0) > 0 ||
+          (s2?.semesterAverage ?? 0) > 0 ||
+          (s2?.examAverage ?? 0) > 0 ||
+          (s2?.monthlyAverage ?? 0) > 0;
+        const hasScore = hasSem1 || hasSem2 || (ann?.annualAverage ?? 0) > 0;
+        return {
+          average: ann?.annualAverage ?? 0,
+          grade: ann?.grade ?? 'F',
+          hasScore,
+        };
+      },
+      'blue'
+    );
+
+    return [semEntry, annualEntry];
+  }, [semesterLabel, students, semesterResults, isSem2, semester1Results, annualResults]);
+
   const openManageColumnsModal = (
     preferredGroupKey?: 'all' | 'exam' | 'comp' | 'annual_comp'
   ) => {
@@ -868,7 +919,7 @@ export const SemesterResultsTab: React.FC<SemesterResultsTabProps> = ({
                       onClick={() => setSelectedSubKey(sub.key)}
                       className={`min-h-[40px] px-3 rounded-xl text-xs font-semibold border transition-all duration-150 active:scale-95 whitespace-nowrap ${
                         selectedSubKey === sub.key
-                          ? 'btn-dark border-slate-900 dark:border-blue-600'
+                          ? 'bg-slate-900 text-white border-slate-900 shadow-sm dark:bg-emerald-500 dark:text-slate-950 dark:border-emerald-300 dark:shadow-[0_2px_12px_-2px_rgba(16,185,129,0.5)]'
                           : 'bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'
                       }`}
                     >
@@ -894,7 +945,7 @@ export const SemesterResultsTab: React.FC<SemesterResultsTabProps> = ({
                         onClick={() => setSelectedSubKey(annualKey)}
                         className={`min-h-[40px] px-3 rounded-xl text-xs font-semibold border transition-all duration-150 active:scale-95 whitespace-nowrap ${
                           selectedSubKey === annualKey
-                            ? 'btn-dark border-slate-900 dark:border-blue-600'
+                            ? 'bg-slate-900 text-white border-slate-900 shadow-sm dark:bg-emerald-500 dark:text-slate-950 dark:border-emerald-300 dark:shadow-[0_2px_12px_-2px_rgba(16,185,129,0.5)]'
                             : 'bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'
                         }`}
                       >
@@ -906,6 +957,12 @@ export const SemesterResultsTab: React.FC<SemesterResultsTabProps> = ({
               </div>
             )}
           </div>
+
+          <ScoreSummaryTable
+            subtitle={isSem2 ? 'ឆមាសទី ២ និងប្រចាំឆ្នាំ' : semesterLabel}
+            maxScore={settings.maxScore}
+            entries={summaryEntries}
+          />
 
           <div className="relative">
             <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -1106,6 +1163,12 @@ export const SemesterResultsTab: React.FC<SemesterResultsTabProps> = ({
 
       {entryMode === 'byStudent' && (
         <>
+          <ScoreSummaryTable
+            subtitle={isSem2 ? 'ឆមាសទី ២ និងប្រចាំឆ្នាំ' : semesterLabel}
+            maxScore={settings.maxScore}
+            entries={summaryEntries}
+          />
+
           <div className="relative">
             <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
