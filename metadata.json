@@ -1,0 +1,6 @@
+{
+  "name": "កម្មវិធីបញ្ចូលពិន្ទុនិងវត្តមាន · Khmer Classbook",
+  "description": "កម្មវិធីគ្រូបន្ទុកថ្នាក់សម្រាប់បញ្ចូលវត្តមាន និងពិន្ទុសិស្សតាមទូរសព្ទដៃ រក្សាទុកដោយស្វ័យប្រវត្តិលើ Google Sheets",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

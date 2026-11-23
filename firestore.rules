@@ -1,0 +1,239 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Hardened Global Helpers
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isVerifiedOwner(userId) {
+      return isVerifiedUser() && request.auth.uid == userId;
+    }
+
+    // Validation Blueprints synchronized with firebase-blueprint.json
+    function isValidUserAccount(data, userId) {
+      return data.keys().hasAll(['uid', 'createdAt']) &&
+        data.keys().hasOnly(['uid', 'createdAt']) &&
+        data.uid is string &&
+        data.uid.size() >= 1 &&
+        data.uid.size() <= 128 &&
+        data.uid.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.uid == userId &&
+        data.uid == request.auth.uid &&
+        data.createdAt is timestamp &&
+        data.createdAt == request.time;
+    }
+
+    function isValidCustomHoliday(data, userId) {
+      return data.keys().hasAll(['userId', 'date', 'title', 'createdAt']) &&
+        data.keys().hasOnly(['userId', 'date', 'title', 'createdAt']) &&
+        data.userId is string &&
+        data.userId.size() >= 1 &&
+        data.userId.size() <= 128 &&
+        data.userId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        data.date is string &&
+        data.date.size() == 10 &&
+        data.date.matches('^\\d{4}-\\d{2}-\\d{2}$') &&
+        data.title is string &&
+        data.title.size() >= 1 &&
+        data.title.size() <= 120 &&
+        data.createdAt is timestamp &&
+        data.createdAt == request.time;
+    }
+
+    function isValidActiveSheetInfo(sheet) {
+      return sheet == null || (
+        sheet is map &&
+        sheet.keys().hasAll(['spreadsheetId', 'title', 'url']) &&
+        sheet.keys().hasOnly(['spreadsheetId', 'title', 'url']) &&
+        sheet.spreadsheetId is string &&
+        sheet.spreadsheetId.size() >= 1 &&
+        sheet.spreadsheetId.size() <= 200 &&
+        sheet.title is string &&
+        sheet.title.size() >= 1 &&
+        sheet.title.size() <= 300 &&
+        sheet.url is string &&
+        sheet.url.size() >= 1 &&
+        sheet.url.size() <= 500
+      );
+    }
+
+    function isValidUserGradebook(data, userId) {
+      return data.keys().hasAll([
+          'userId',
+          'settings',
+          'students',
+          'attendanceByMonth',
+          'monthlyScoresByMonth',
+          'semesterScoresByTerm',
+          'domainGradesByTerm',
+          'remarks',
+          'activeSheet',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'userId',
+          'settings',
+          'students',
+          'attendanceByMonth',
+          'attendanceReasonsByMonth',
+          'monthlyScoresByMonth',
+          'competencyRubricsByMonth',
+          'semesterScoresByTerm',
+          'competencyRubricsByTerm',
+          'domainGradesByTerm',
+          'remarks',
+          'activeSheet',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.userId is string &&
+        data.userId.size() >= 1 &&
+        data.userId.size() <= 128 &&
+        data.userId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        data.settings is map &&
+        data.settings.keys().size() <= 30 &&
+        data.students is list &&
+        data.students.size() <= 200 &&
+        (data.students.size() == 0 || data.students[0] is map) &&
+        data.attendanceByMonth is map &&
+        data.attendanceByMonth.keys().size() <= 36 &&
+        (!('attendanceReasonsByMonth' in data) || (
+          data.attendanceReasonsByMonth is map &&
+          data.attendanceReasonsByMonth.keys().size() <= 36
+        )) &&
+        data.monthlyScoresByMonth is map &&
+        data.monthlyScoresByMonth.keys().size() <= 36 &&
+        (!('competencyRubricsByMonth' in data) || (
+          data.competencyRubricsByMonth is map &&
+          data.competencyRubricsByMonth.keys().size() <= 36
+        )) &&
+        data.semesterScoresByTerm is map &&
+        data.semesterScoresByTerm.keys().size() <= 6 &&
+        (!('competencyRubricsByTerm' in data) || (
+          data.competencyRubricsByTerm is map &&
+          data.competencyRubricsByTerm.keys().size() <= 6
+        )) &&
+        data.domainGradesByTerm is map &&
+        data.domainGradesByTerm.keys().size() <= 6 &&
+        data.remarks is map &&
+        data.remarks.keys().size() <= 200 &&
+        isValidActiveSheetInfo(data.activeSheet) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    // Teacher Account Root Anchor (no PII stored)
+    match /users/{userId} {
+      allow get: if isValidId(userId) &&
+        isOwner(userId) &&
+        (resource == null || existing().uid == request.auth.uid);
+      allow list: if false;
+      allow create: if isValidId(userId) && isVerifiedOwner(userId) && isValidUserAccount(incoming(), userId);
+      allow update: if false;
+      allow delete: if false;
+
+      // Per-Teacher Custom Off-Days & Holidays
+      match /customHolidays/{holidayId} {
+        allow get: if isValidId(userId) &&
+          isValidId(holidayId) &&
+          isOwner(userId) &&
+          (resource == null || existing().userId == request.auth.uid);
+
+        allow list: if isOwner(userId) &&
+          existing().userId == request.auth.uid;
+
+        allow create: if isValidId(userId) &&
+          isValidId(holidayId) &&
+          isVerifiedOwner(userId) &&
+          isValidCustomHoliday(incoming(), userId) &&
+          existsAfter(/databases/$(database)/documents/users/$(userId)) &&
+          getAfter(/databases/$(database)/documents/users/$(userId)).data.uid == request.auth.uid;
+
+        allow update: if false;
+
+        allow delete: if isValidId(userId) &&
+          isValidId(holidayId) &&
+          isVerifiedOwner(userId) &&
+          existing().userId == request.auth.uid;
+      }
+
+      // Per-Teacher Auto-Saved Gradebook
+      match /gradebooks/{gradebookId} {
+        allow get: if isValidId(userId) &&
+          isValidId(gradebookId) &&
+          isOwner(userId) &&
+          (resource == null || existing().userId == request.auth.uid);
+
+        allow list: if isOwner(userId) &&
+          existing().userId == request.auth.uid;
+
+        allow create: if isValidId(userId) &&
+          isValidId(gradebookId) &&
+          isVerifiedOwner(userId) &&
+          isValidUserGradebook(incoming(), userId) &&
+          incoming().createdAt == request.time &&
+          incoming().updatedAt == request.time &&
+          existsAfter(/databases/$(database)/documents/users/$(userId)) &&
+          getAfter(/databases/$(database)/documents/users/$(userId)).data.uid == request.auth.uid;
+
+        allow update: if isValidId(userId) &&
+          isValidId(gradebookId) &&
+          isVerifiedOwner(userId) &&
+          isValidUserGradebook(incoming(), userId) &&
+          incoming().userId == existing().userId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'settings',
+            'students',
+            'attendanceByMonth',
+            'attendanceReasonsByMonth',
+            'monthlyScoresByMonth',
+            'competencyRubricsByMonth',
+            'semesterScoresByTerm',
+            'competencyRubricsByTerm',
+            'domainGradesByTerm',
+            'remarks',
+            'activeSheet',
+            'updatedAt'
+          ]);
+
+        allow delete: if isValidId(userId) &&
+          isValidId(gradebookId) &&
+          isVerifiedOwner(userId) &&
+          existing().userId == request.auth.uid;
+      }
+    }
+  }
+}

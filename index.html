@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="km">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <title>កម្មវិធីបញ្ចូលពិន្ទុនិងវត្តមាន · Khmer Classbook</title>
+    <meta
+      name="description"
+      content="កម្មវិធីគ្រូបន្ទុកថ្នាក់សម្រាប់បញ្ចូលវត្តមាន និងពិន្ទុសិស្សតាមទូរសព្ទដៃ ដោយភ្ជាប់ផ្ទុកទិន្នន័យលើ Google Sheets ដោយស្វ័យប្រវត្តិ។"
+    />
+    <meta property="og:title" content="កម្មវិធីបញ្ចូលពិន្ទុនិងវត្តមាន · Khmer Classbook" />
+    <meta
+      property="og:description"
+      content="កម្មវិធីគ្រូបន្ទុកថ្នាក់សម្រាប់បញ្ចូលវត្តមាន និងពិន្ទុសិស្សតាមទូរសព្ទដៃ ដោយភ្ជាប់ផ្ទុកទិន្នន័យលើ Google Sheets ដោយស្វ័យប្រវត្តិ។"
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Kantumruy+Pro:wght@400;500;600;700&family=Noto+Sans+Khmer:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('khmer_classbook_theme');
+          var isDark =
+            saved === 'dark' ||
+            (!saved &&
+              window.matchMedia &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.style.colorScheme = 'dark';
+          } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.style.colorScheme = 'light';
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body class="app-canvas text-slate-900 dark:text-slate-100 antialiased selection:bg-blue-100 selection:text-blue-900 dark:selection:bg-blue-900/60 dark:selection:text-blue-100 transition-colors duration-150">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

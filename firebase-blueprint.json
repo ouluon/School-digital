@@ -1,0 +1,152 @@
+{
+  "entities": {
+    "UserAccount": {
+      "title": "UserAccount",
+      "description": "Minimal authenticated teacher account anchor document (no PII stored) used to scope per-account data.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Authentication UID of the teacher account.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the account record was initialized."
+        }
+      },
+      "required": ["uid", "createdAt"]
+    },
+    "CustomHoliday": {
+      "title": "CustomHoliday",
+      "description": "A custom non-working / school holiday date recorded strictly for a specific authenticated teacher account.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner teacher Firebase Auth UID matching request.auth.uid.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "date": {
+          "type": "string",
+          "description": "Calendar date in YYYY-MM-DD format.",
+          "minLength": 10,
+          "maxLength": 10,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "title": {
+          "type": "string",
+          "description": "Khmer or display title/reason for the custom holiday.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when this custom holiday entry was created."
+        }
+      },
+      "required": ["userId", "date", "title", "createdAt"]
+    },
+    "UserGradebook": {
+      "title": "UserGradebook",
+      "description": "Auto-saved classroom gradebook state (settings, roster, attendance, monthly scores, semester scores, domain grades, remarks, and linked Google Sheet info) owned by a teacher account.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner teacher Firebase Auth UID matching request.auth.uid.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "settings": {
+          "type": "object",
+          "description": "Class settings map including class name, academic year, active periods, semester months, and per-account customSubjectLabels / customSemesterSubjectLabels / hiddenMonthlySubjectKeys / hiddenSemesterSubjectKeys."
+        },
+        "students": {
+          "type": "array",
+          "description": "List of student roster records (max 200)."
+        },
+        "attendanceByMonth": {
+          "type": "object",
+          "description": "Monthly attendance records indexed by YYYY-MM."
+        },
+        "attendanceReasonsByMonth": {
+          "type": "object",
+          "description": "Monthly excused-leave ('ច្ប') reasons indexed by YYYY-MM -> studentId -> day."
+        },
+        "monthlyScoresByMonth": {
+          "type": "object",
+          "description": "Monthly subject scores indexed by YYYY-MM."
+        },
+        "competencyRubricsByMonth": {
+          "type": "object",
+          "description": "Monthly indicator rubric evaluations for បំណិនសម្បទា and ចរិយាសម្បទា indexed by YYYY-MM -> studentId."
+        },
+        "semesterScoresByTerm": {
+          "type": "object",
+          "description": "Semester exam scores indexed by semester number string."
+        },
+        "competencyRubricsByTerm": {
+          "type": "object",
+          "description": "Semester indicator rubric evaluations for បំណិនសម្បទា and ចរិយាសម្បទា indexed by semester term string -> studentId."
+        },
+        "domainGradesByTerm": {
+          "type": "object",
+          "description": "Semester evaluation domain grades indexed by semester number string."
+        },
+        "remarks": {
+          "type": "object",
+          "description": "Teacher remarks keyed by student ID."
+        },
+        "activeSheet": {
+          "type": "object",
+          "description": "Linked Google Spreadsheet metadata or null if not yet created."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the gradebook record was first created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the gradebook record was last auto-saved."
+        }
+      },
+      "required": [
+        "userId",
+        "settings",
+        "students",
+        "attendanceByMonth",
+        "monthlyScoresByMonth",
+        "semesterScoresByTerm",
+        "domainGradesByTerm",
+        "remarks",
+        "activeSheet",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserAccount" },
+      "description": "Per-teacher account root document anchored to Firebase Auth UID."
+    },
+    "/users/{userId}/customHolidays/{holidayId}": {
+      "schema": { "$ref": "#/entities/CustomHoliday" },
+      "description": "Per-teacher custom off-days and school holidays, isolated per logged-in account."
+    },
+    "/users/{userId}/gradebooks/{gradebookId}": {
+      "schema": { "$ref": "#/entities/UserGradebook" },
+      "description": "Auto-saved per-teacher class gradebook (students, attendance, monthly/semester scores, remarks, settings)."
+    }
+  }
+}
