@@ -103,6 +103,8 @@ import {
   RecordToastPhase,
   RecordToastState,
 } from './components/RecordToast';
+import { PWAInstallButton } from './components/PWAInstallButton';
+import { OfflineIndicator } from './components/OfflineIndicator';
 import {
   ThemeMode,
   applyThemeMode,
@@ -2364,13 +2366,19 @@ export default function App() {
       {/* Top Bar: Strict 3-Zone Contract (56px height) */}
       <header className="sticky top-0 z-30 w-full h-14 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 shadow-[0_1px_12px_-4px_rgba(15,23,42,0.06)] dark:shadow-[0_1px_12px_-4px_rgba(0,0,0,0.45)]">
         <div className="max-w-7xl mx-auto h-full px-3 sm:px-6 flex items-center justify-between gap-2 sm:gap-3 md:gap-8">
-          {/* Zone 1: Brand Wordmark */}
+          {/* Zone 1: Brand Logo & Wordmark */}
           <button
             type="button"
             onClick={() => setActiveTab('attendance')}
-            className="min-w-0 flex-1 sm:flex-none text-sm sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 whitespace-nowrap truncate text-left hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
+            className="min-w-0 flex-1 sm:flex-none flex items-center gap-2 sm:gap-2.5 text-sm sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 whitespace-nowrap text-left hover:text-blue-700 dark:hover:text-blue-400 transition-colors cursor-pointer"
           >
-            កម្មវិធីបញ្ចូលពិន្ទុនិងវត្តមាន
+            <img
+              src="/assets/aistudio/Gemini_Generated_Image_32m1mh32m1mh32m1_fc5b9cee.jpg"
+              alt=""
+              aria-hidden="true"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover ring-1 ring-slate-200/90 dark:ring-slate-700 shadow-xs shrink-0"
+            />
+            <span className="truncate">កម្មវិធីបញ្ចូលពិន្ទុនិងវត្តមាន</span>
           </button>
 
           {/* Zone 2: Desktop Navigation Links */}
@@ -2421,10 +2429,11 @@ export default function App() {
             </button>
           </nav>
 
-          {/* Zone 3: Single Primary Action, Theme Icon & User Profile */}
+          {/* Zone 3: Single Primary Action, Install CTA, Theme Icon & User Profile */}
           <div className="flex items-center gap-2 shrink-0">
             {!user ? (
               <>
+                <PWAInstallButton />
                 <button
                   type="button"
                   onClick={() =>
@@ -2474,6 +2483,7 @@ export default function App() {
                     </span>
                   </button>
                 )}
+                <PWAInstallButton />
                 <button
                   type="button"
                   onClick={() =>
@@ -3155,6 +3165,9 @@ export default function App() {
         onPauseAutoDismiss={handlePauseToastDismiss}
         onResumeAutoDismiss={handleResumeToastDismiss}
       />
+
+      {/* Offline Status Indicator */}
+      <OfflineIndicator />
     </div>
   );
 }
