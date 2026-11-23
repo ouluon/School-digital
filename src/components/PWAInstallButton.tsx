@@ -51,15 +51,15 @@ export const PWAInstallButton: React.FC = () => {
                 <div className="flex items-center gap-2.5">
                   <img
                     src="/assets/aistudio/Gemini_Generated_Image_32m1mh32m1mh32m1_fc5b9cee.jpg"
-                    alt="Khmer Classbook Icon"
+                    alt="School Digital Icon"
                     className="w-10 h-10 rounded-xl object-cover border border-slate-200 dark:border-slate-700"
                   />
                   <div>
                     <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                      បន្ថែមទៅអេក្រង់ដើម (iOS)
+                      បន្ថែម School Digital ទៅអេក្រង់ដើម
                     </h3>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Add to Home Screen
+                      iOS Add to Home Screen
                     </p>
                   </div>
                 </div>

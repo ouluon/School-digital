@@ -21,8 +21,8 @@ export default defineConfig(() => {
         ],
         manifest: {
           id: '/',
-          name: 'កម្មវិធីបញ្ចូលពិន្ទុនិងវត្តមាន · Khmer Classbook',
-          short_name: 'សៀវភៅថ្នាក់',
+          name: 'School Digital',
+          short_name: 'School Digital',
           description:
             'កម្មវិធីគ្រូបន្ទុកថ្នាក់សម្រាប់បញ្ចូលវត្តមាន និងពិន្ទុសិស្សតាមទូរសព្ទដៃ ដោយភ្ជាប់ផ្ទុកទិន្នន័យលើ Google Sheets ដោយស្វ័យប្រវត្តិ។',
           theme_color: '#1d4ed8',
