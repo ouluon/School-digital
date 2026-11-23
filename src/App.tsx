@@ -86,6 +86,15 @@ import {
   saveUserGradebookToCloud,
 } from './services/gradebookCloud';
 import {
+  loadLocalUserProfile,
+  loadUserProfileFromCloud,
+  saveLocalUserProfile,
+  saveUserProfileToCloud,
+  updateAuthProfileName,
+  UserProfileData,
+} from './services/userProfile';
+import { UserProfileProvider } from './contexts/UserProfileContext';
+import {
   getCalendarYearForAcademicMonth,
   parseAcademicYear,
 } from './utils/calculations';
@@ -94,6 +103,7 @@ import { MonthlyScoresTab } from './components/MonthlyScoresTab';
 import { SemesterResultsTab } from './components/SemesterResultsTab';
 import { RosterAndSheetTab } from './components/RosterAndSheetTab';
 import { AuthModal, AuthModalMode } from './components/AuthModal';
+import { AccountProfileModal } from './components/AccountProfileModal';
 import { UserProfileMenu } from './components/UserProfileMenu';
 import { ConfirmSyncModal, PendingSyncSummary } from './components/ConfirmSyncModal';
 import { ShareExcelModal } from './components/ShareExcelModal';
@@ -341,6 +351,8 @@ export default function App() {
 
   // Auth & Workspace state (tokens stored strictly in memory via googleAuth.ts)
   const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [authRefreshTick, setAuthRefreshTick] = useState(0);
   const [hasToken, setHasToken] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -779,6 +791,7 @@ export default function App() {
 
       workingDraft = loadDraft(authedUser.uid, authedUser);
       applyWorkspaceDraft(workingDraft, authedUser.uid);
+      setUserProfile(loadLocalUserProfile(authedUser.uid));
       setHasUnsavedChanges(Boolean(workingDraft.pendingSheetSync));
       setPendingSync(null);
       setDriveFiles([]);
@@ -819,7 +832,39 @@ export default function App() {
         setIsHydratingAccount(true);
       }
       try {
-        // 1. Reconcile local draft with Firestore cloud backup first
+        // 1. Reconcile local profile & gradebook with Firestore cloud backup first
+        const localProfile = loadLocalUserProfile(authedUser.uid);
+        let cloudProfile: UserProfileData | null = null;
+        try {
+          cloudProfile = await loadUserProfileFromCloud(authedUser.uid);
+        } catch {
+          cloudProfile = null;
+        }
+
+        if (cloudProfile) {
+          const localProfileTime = localProfile?.updatedAtMs || 0;
+          if (!localProfile || (cloudProfile.updatedAtMs || 0) >= localProfileTime) {
+            setUserProfile(cloudProfile);
+            saveLocalUserProfile(authedUser.uid, cloudProfile);
+          } else if (localProfileTime > (cloudProfile.updatedAtMs || 0) && authedUser.emailVerified) {
+            setUserProfile(localProfile);
+            try {
+              await saveUserProfileToCloud(authedUser.uid, localProfile);
+            } catch {
+              // ignore secondary profile sync error during hydration
+            }
+          }
+        } else if (localProfile) {
+          setUserProfile(localProfile);
+          if (authedUser.emailVerified) {
+            try {
+              await saveUserProfileToCloud(authedUser.uid, localProfile);
+            } catch {
+              // ignore secondary profile sync error during hydration
+            }
+          }
+        }
+
         let cloudGradebook: Awaited<ReturnType<typeof loadUserGradebookFromCloud>> = null;
         try {
           cloudGradebook = await loadUserGradebookFromCloud(authedUser.uid);
@@ -1136,6 +1181,8 @@ export default function App() {
         } else if (activeUidRef.current !== null) {
           activeUidRef.current = null;
           hydratedSessionRef.current = null;
+          setUserProfile(null);
+          setIsProfileModalOpen(false);
           setDriveFiles([]);
           setPendingSync(null);
           setHasUnsavedChanges(false);
@@ -1289,6 +1336,8 @@ export default function App() {
     hydratedSessionRef.current = null;
     pendingCloudSaveRef.current = false;
     setUser(null);
+    setUserProfile(null);
+    setIsProfileModalOpen(false);
     setHasToken(false);
     setAuthRefreshTick((t) => t + 1);
     setDriveFiles([]);
@@ -1301,6 +1350,52 @@ export default function App() {
       type: 'success',
       text: 'បានចាកចេញពីគណនីរួចរាល់។',
     });
+  };
+
+  const handleSaveUserProfile = async (
+    nextProfile: UserProfileData,
+    options: { syncToClassSettings: boolean }
+  ) => {
+    if (!user?.uid) return;
+
+    const stampedProfile: UserProfileData = {
+      ...nextProfile,
+      updatedAtMs: Date.now(),
+    };
+
+    saveLocalUserProfile(user.uid, stampedProfile);
+    setUserProfile(stampedProfile);
+
+    try {
+      await updateAuthProfileName(stampedProfile.displayName);
+      setAuthRefreshTick((t) => t + 1);
+    } catch {
+      // Keep local/cloud profile saved even if Firebase Auth displayName update fails
+    }
+
+    if (options.syncToClassSettings) {
+      setSettings((prev) => ({
+        ...prev,
+        teacherName: stampedProfile.displayName || prev.teacherName,
+        schoolName: stampedProfile.schoolName?.trim()
+          ? stampedProfile.schoolName.trim()
+          : prev.schoolName,
+      }));
+      markDataEdited(true);
+    }
+
+    if (user.emailVerified) {
+      await saveUserProfileToCloud(user.uid, stampedProfile);
+      setBannerMsg({
+        type: 'success',
+        text: 'បានរក្សាទុកព័ត៌មានផ្ទាល់ខ្លួន និងរូបថត Profile ទៅលើ Cloud រួចរាល់។',
+      });
+    } else {
+      setBannerMsg({
+        type: 'success',
+        text: 'បានរក្សាទុកព័ត៌មានផ្ទាល់ខ្លួន និងរូបថត Profile ក្នុងឧបករណ៍រួចរាល់។',
+      });
+    }
   };
 
   // Counts across all entered months and semesters for confirmation modal
@@ -2362,6 +2457,12 @@ export default function App() {
     KHMER_MONTHS.find((m) => m.value === headerPeriod.month)?.label || '';
 
   return (
+    <UserProfileProvider
+      value={{
+        profile: userProfile,
+        openProfileEditor: () => setIsProfileModalOpen(true),
+      }}
+    >
     <div className="min-h-screen w-full max-w-full overflow-x-clip text-slate-900 dark:text-slate-100 pb-24 md:pb-10 flex flex-col">
       {/* Top Bar: Strict 3-Zone Contract (56px height) */}
       <header className="sticky top-0 z-30 w-full h-14 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 shadow-[0_1px_12px_-4px_rgba(15,23,42,0.06)] dark:shadow-[0_1px_12px_-4px_rgba(0,0,0,0.45)]">
@@ -2513,6 +2614,7 @@ export default function App() {
                   hasToken={hasToken}
                   themeMode={themeMode}
                   onChangeTheme={handleChangeTheme}
+                  onEditProfile={() => setIsProfileModalOpen(true)}
                   onReauth={() => void handleSignIn(false)}
                   onSwitchAccount={() => setAuthModal({ open: true, mode: 'signin' })}
                   onOpenSheetTab={() => setActiveTab('roster')}
@@ -2942,6 +3044,7 @@ export default function App() {
           <RosterAndSheetTab
             key={user?.uid || 'guest'}
             user={user}
+            userProfile={userProfile}
             hasToken={hasToken}
             isLoggingIn={isLoggingIn}
             activeSheet={activeSheet}
@@ -2958,6 +3061,7 @@ export default function App() {
             onSignIn={() => void handleSignIn(false)}
             onSignInRedirect={handleSignInRedirect}
             onOpenAuthModal={(mode) => setAuthModal({ open: true, mode })}
+            onEditProfile={() => setIsProfileModalOpen(true)}
             onResendVerification={handleResendVerification}
             onRefreshVerification={handleRefreshVerification}
             isCheckingVerification={isCheckingVerification}
@@ -3158,6 +3262,17 @@ export default function App() {
         onGoogleRedirect={handleSignInRedirect}
       />
 
+      {/* Account Personal Info & Profile Photo Modal */}
+      <AccountProfileModal
+        open={isProfileModalOpen}
+        user={user}
+        initialProfile={userProfile}
+        defaultSchoolName={settings.schoolName}
+        defaultTeacherName={settings.teacherName}
+        onClose={() => setIsProfileModalOpen(false)}
+        onSave={handleSaveUserProfile}
+      />
+
       {/* Non-blocking Recording / Auto-Save Toast Notification */}
       <RecordToast
         toast={recordToast}
@@ -3169,5 +3284,6 @@ export default function App() {
       {/* Offline Status Indicator */}
       <OfflineIndicator />
     </div>
+    </UserProfileProvider>
   );
 }

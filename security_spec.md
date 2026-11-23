@@ -8,6 +8,9 @@
 - **Subcollection 2**: `/users/{userId}/gradebooks/{gradebookId}` (`UserGradebook`) — per-teacher auto-saved class settings, student roster, attendance, monthly/semester scores, domain grades, remarks, and active Google Sheet pointer.
   - Parent relationship enforced synchronously on `create` via `existsAfter` / `getAfter` on `/users/{userId}`.
   - Updates enforce immutable `userId` and `createdAt`, server-controlled `updatedAt == request.time`, and strict `affectedKeys().hasOnly(...)` allow-list.
+- **Subcollection 3**: `/users/{userId}/private/{profileId}` (`UserProfile`) — strictly owner-isolated PII (personal profile details and compressed avatar data URL).
+  - `allow list: if false;` prevents collection enumeration; `allow get` strictly enforces `isOwner(userId)`.
+  - `photoDataUrl` is bounded to `<= 120000` chars and validated to `^data:image/(jpeg|png|webp);base64,...$` or `^https://...$`.
 
 ## Data Invariants
 1. Unauthenticated requests (`request.auth == null`) are denied all reads and writes.

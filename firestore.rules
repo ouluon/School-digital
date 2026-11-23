@@ -153,6 +153,49 @@ service cloud.firestore {
         data.updatedAt is timestamp;
     }
 
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll(['userId', 'displayName', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly([
+          'userId',
+          'displayName',
+          'schoolName',
+          'roleTitle',
+          'phone',
+          'gender',
+          'address',
+          'bio',
+          'photoDataUrl',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.userId is string &&
+        data.userId.size() >= 1 &&
+        data.userId.size() <= 128 &&
+        data.userId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.userId == userId &&
+        data.userId == request.auth.uid &&
+        data.displayName is string &&
+        data.displayName.size() >= 1 &&
+        data.displayName.size() <= 100 &&
+        (!('schoolName' in data) || (data.schoolName is string && data.schoolName.size() <= 150)) &&
+        (!('roleTitle' in data) || (data.roleTitle is string && data.roleTitle.size() <= 100)) &&
+        (!('phone' in data) || (data.phone is string && data.phone.size() <= 40)) &&
+        (!('gender' in data) || (data.gender is string && data.gender.size() <= 10 && data.gender in ['ប្រុស', 'ស្រី', ''])) &&
+        (!('address' in data) || (data.address is string && data.address.size() <= 200)) &&
+        (!('bio' in data) || (data.bio is string && data.bio.size() <= 300)) &&
+        (!('photoDataUrl' in data) || (
+          data.photoDataUrl is string &&
+          data.photoDataUrl.size() <= 120000 &&
+          (
+            data.photoDataUrl == '' ||
+            data.photoDataUrl.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$') ||
+            data.photoDataUrl.matches('^https://.*$')
+          )
+        )) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
     // Teacher Account Root Anchor (no PII stored)
     match /users/{userId} {
       allow get: if isValidId(userId) &&
@@ -231,6 +274,49 @@ service cloud.firestore {
 
         allow delete: if isValidId(userId) &&
           isValidId(gradebookId) &&
+          isVerifiedOwner(userId) &&
+          existing().userId == request.auth.uid;
+      }
+
+      // Per-Teacher Private Personal Profile & Avatar (PII Isolated)
+      match /private/{profileId} {
+        allow get: if isValidId(userId) &&
+          isValidId(profileId) &&
+          isOwner(userId) &&
+          (resource == null || existing().userId == request.auth.uid);
+
+        allow list: if false;
+
+        allow create: if isValidId(userId) &&
+          isValidId(profileId) &&
+          isVerifiedOwner(userId) &&
+          isValidUserProfile(incoming(), userId) &&
+          incoming().createdAt == request.time &&
+          incoming().updatedAt == request.time &&
+          existsAfter(/databases/$(database)/documents/users/$(userId)) &&
+          getAfter(/databases/$(database)/documents/users/$(userId)).data.uid == request.auth.uid;
+
+        allow update: if isValidId(userId) &&
+          isValidId(profileId) &&
+          isVerifiedOwner(userId) &&
+          isValidUserProfile(incoming(), userId) &&
+          incoming().userId == existing().userId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'displayName',
+            'schoolName',
+            'roleTitle',
+            'phone',
+            'gender',
+            'address',
+            'bio',
+            'photoDataUrl',
+            'updatedAt'
+          ]);
+
+        allow delete: if isValidId(userId) &&
+          isValidId(profileId) &&
           isVerifiedOwner(userId) &&
           existing().userId == request.auth.uid;
       }

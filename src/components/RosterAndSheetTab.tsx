@@ -54,12 +54,15 @@ import {
   isInAppBrowser,
   isInIframe,
 } from '../services/googleAuth';
+import { UserCog } from 'lucide-react';
 import { DriveSheetFile } from '../services/googleSheets';
+import { UserProfileData } from '../services/userProfile';
 import { GoogleSignInButton } from './GoogleSignInButton';
 import { UserAvatar } from './UserProfileMenu';
 
 interface RosterAndSheetTabProps {
   user: User | null;
+  userProfile?: UserProfileData | null;
   hasToken: boolean;
   isLoggingIn: boolean;
   activeSheet: SpreadsheetInfo | null;
@@ -76,6 +79,7 @@ interface RosterAndSheetTabProps {
   onSignIn: () => void;
   onSignInRedirect?: () => void;
   onOpenAuthModal?: (mode: 'signin' | 'signup') => void;
+  onEditProfile?: () => void;
   onResendVerification?: () => void;
   onRefreshVerification?: () => void;
   isCheckingVerification?: boolean;
@@ -99,6 +103,7 @@ interface RosterAndSheetTabProps {
 
 export const RosterAndSheetTab: React.FC<RosterAndSheetTabProps> = ({
   user,
+  userProfile,
   hasToken,
   isLoggingIn,
   activeSheet,
@@ -115,6 +120,7 @@ export const RosterAndSheetTab: React.FC<RosterAndSheetTabProps> = ({
   onSignIn,
   onSignInRedirect,
   onOpenAuthModal,
+  onEditProfile,
   onResendVerification,
   onRefreshVerification,
   isCheckingVerification = false,
@@ -385,46 +391,78 @@ export const RosterAndSheetTab: React.FC<RosterAndSheetTabProps> = ({
           {!hasToken ? (
             <div className="bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-xl p-4 space-y-3">
               {user && (
-                <div className="flex items-center justify-between gap-3 bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl p-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <UserAvatar user={user} sizeClass="w-10 h-10" textClass="text-sm" />
-                    <div className="min-w-0">
-                      <div className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
-                        {user.displayName || user.email?.split('@')[0] || 'គណនីគ្រូបន្ទុកថ្នាក់'}
-                      </div>
-                      {user.email && (
-                        <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                          {user.email}
+                <div className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-2.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <UserAvatar user={user} sizeClass="w-11 h-11" textClass="text-sm" />
+                      <div className="min-w-0">
+                        <div className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+                          {userProfile?.displayName ||
+                            user.displayName ||
+                            user.email?.split('@')[0] ||
+                            'គណនីគ្រូបន្ទុកថ្នាក់'}
                         </div>
-                      )}
-                      <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold">
-                        <span
-                          className={`w-2 h-2 rounded-full shrink-0 ${
-                            user.emailVerified ? 'bg-emerald-500' : 'bg-amber-500'
-                          }`}
-                        />
-                        <span
-                          className={
-                            user.emailVerified
-                              ? 'text-emerald-700 dark:text-emerald-400'
-                              : 'text-amber-700 dark:text-amber-400'
-                          }
-                        >
-                          {user.emailVerified
-                            ? 'គណនី Cloud បានបើក'
-                            : 'រង់ចាំបញ្ជាក់អ៊ីមែល'}
-                        </span>
+                        {(userProfile?.roleTitle || userProfile?.schoolName) && (
+                          <div className="text-[11px] font-medium text-blue-700 dark:text-blue-400 truncate">
+                            {[userProfile.roleTitle, userProfile.schoolName]
+                              .filter(Boolean)
+                              .join(' · ')}
+                          </div>
+                        )}
+                        {user.email && (
+                          <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                            {user.email}
+                          </div>
+                        )}
+                        <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold">
+                          <span
+                            className={`w-2 h-2 rounded-full shrink-0 ${
+                              user.emailVerified ? 'bg-emerald-500' : 'bg-amber-500'
+                            }`}
+                          />
+                          <span
+                            className={
+                              user.emailVerified
+                                ? 'text-emerald-700 dark:text-emerald-400'
+                                : 'text-amber-700 dark:text-amber-400'
+                            }
+                          >
+                            {user.emailVerified
+                              ? 'គណនី Cloud បានបើក'
+                              : 'រង់ចាំបញ្ជាក់អ៊ីមែល'}
+                          </span>
+                        </div>
                       </div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={onSignOut}
+                      className="btn-secondary min-h-[36px] px-2.5 rounded-lg text-xs font-semibold flex items-center gap-1 shrink-0"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>ចេញ</span>
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={onSignOut}
-                    className="btn-secondary min-h-[36px] px-2.5 rounded-lg text-xs font-semibold flex items-center gap-1 shrink-0"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                    <span>ចេញ</span>
-                  </button>
+
+                  {(userProfile?.phone || userProfile?.address || onEditProfile) && (
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                        {[userProfile?.phone, userProfile?.address]
+                          .filter(Boolean)
+                          .join(' · ') || 'បន្ថែមរូបថត និងព័ត៌មានផ្ទាល់ខ្លួនរបស់អ្នក'}
+                      </div>
+                      {onEditProfile && (
+                        <button
+                          type="button"
+                          onClick={onEditProfile}
+                          className="min-h-[34px] px-3 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/50 text-xs font-semibold text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/60 flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
+                        >
+                          <UserCog className="w-3.5 h-3.5" />
+                          <span>កែប្រែគណនី / រូបថត</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -545,27 +583,59 @@ export const RosterAndSheetTab: React.FC<RosterAndSheetTabProps> = ({
           ) : (
             <div className="space-y-3.5">
               {user && (
-                <div className="flex items-center gap-3 bg-slate-50/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 rounded-xl p-3">
-                  <div className="relative shrink-0">
-                    <UserAvatar user={user} sizeClass="w-11 h-11" textClass="text-sm" />
-                    <span
-                      aria-hidden="true"
-                      className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-800"
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
-                      {user.displayName || user.email?.split('@')[0] || 'គណនី Google'}
+                <div className="bg-slate-50/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 rounded-xl p-3 space-y-2.5">
+                  <div className="flex items-center gap-3">
+                    <div className="relative shrink-0">
+                      <UserAvatar user={user} sizeClass="w-12 h-12" textClass="text-sm" />
+                      <span
+                        aria-hidden="true"
+                        className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-800"
+                      />
                     </div>
-                    {user.email && (
-                      <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                        {user.email}
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
+                        {userProfile?.displayName ||
+                          user.displayName ||
+                          user.email?.split('@')[0] ||
+                          'គណនី Google'}
                       </div>
-                    )}
+                      {(userProfile?.roleTitle || userProfile?.schoolName) && (
+                        <div className="text-[11px] font-medium text-blue-700 dark:text-blue-400 truncate">
+                          {[userProfile.roleTitle, userProfile.schoolName]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </div>
+                      )}
+                      {user.email && (
+                        <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                          {user.email}
+                        </div>
+                      )}
+                    </div>
+                    <span className="px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/70 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 shrink-0">
+                      បានភ្ជាប់
+                    </span>
                   </div>
-                  <span className="px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/70 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 shrink-0">
-                    បានភ្ជាប់
-                  </span>
+
+                  {(userProfile?.phone || userProfile?.address || onEditProfile) && (
+                    <div className="pt-2 border-t border-slate-200/70 dark:border-slate-700/70 flex flex-wrap items-center justify-between gap-2">
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                        {[userProfile?.phone, userProfile?.address]
+                          .filter(Boolean)
+                          .join(' · ') || 'បន្ថែមរូបថត និងព័ត៌មានផ្ទាល់ខ្លួនរបស់អ្នក'}
+                      </div>
+                      {onEditProfile && (
+                        <button
+                          type="button"
+                          onClick={onEditProfile}
+                          className="min-h-[34px] px-3 rounded-lg border border-blue-200 dark:border-blue-800 bg-white dark:bg-slate-900 text-xs font-semibold text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/50 flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
+                        >
+                          <UserCog className="w-3.5 h-3.5" />
+                          <span>កែប្រែគណនី / រូបថត</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 

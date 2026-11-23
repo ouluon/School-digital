@@ -203,5 +203,28 @@ export const DIRTY_DOZEN_SECURITY_CASES: DirtyDozenCase[] = [
     },
     expectedOutcome: 'PERMISSION_DENIED',
   },
+  {
+    id: 16,
+    name: 'Private Profile Cross-Tenant List Attempt',
+    operation: 'list',
+    path: 'users/teacherA/private',
+    auth: { uid: 'teacherB', emailVerified: true },
+    expectedOutcome: 'PERMISSION_DENIED',
+  },
+  {
+    id: 17,
+    name: 'Private Profile Invalid Photo Protocol Injection',
+    operation: 'create',
+    path: 'users/teacherA/private/profile',
+    auth: { uid: 'teacherA', emailVerified: true },
+    payload: {
+      userId: 'teacherA',
+      displayName: 'គ្រូបន្ទុកថ្នាក់',
+      photoDataUrl: 'javascript:alert(1)',
+      createdAt: 'REQUEST_TIME',
+      updatedAt: 'REQUEST_TIME',
+    },
+    expectedOutcome: 'PERMISSION_DENIED',
+  },
 ];
 
