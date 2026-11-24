@@ -77,7 +77,6 @@ import {
   ShareScope,
   buildShareFilename,
   buildShareSummaryText,
-  canNativeShareFile,
   exportGoogleSheetAsExcelBlob,
   generateLocalExcelBlob,
 } from './services/excelExport';
@@ -2411,25 +2410,6 @@ export default function App() {
         students.length,
         activeSheet?.url
       );
-
-      if (!forceGoogleDriveExport && canNativeShareFile(file)) {
-        try {
-          await navigator.share({
-            files: [file],
-            title: filename,
-            text: summaryText,
-          });
-          setBannerMsg({
-            type: 'success',
-            text: `បានចែករំលែកឯកសារ ${filename} រួចរាល់។`,
-          });
-          return;
-        } catch (shareErr: unknown) {
-          if (shareErr instanceof Error && shareErr.name === 'AbortError') {
-            return;
-          }
-        }
-      }
 
       setShareModal({
         open: true,

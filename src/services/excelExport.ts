@@ -1353,23 +1353,42 @@ export function triggerExcelDownload(blob: Blob, filename: string) {
   const anchor = document.createElement('a');
   anchor.href = url;
   anchor.download = filename;
+  anchor.rel = 'noopener';
   document.body.appendChild(anchor);
   anchor.click();
   document.body.removeChild(anchor);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+export function getBestNativeFileShareData(
+  file: File,
+  title: string,
+  text: string
+): ShareData | null {
+  try {
+    if (typeof navigator === 'undefined' || typeof navigator.share !== 'function') {
+      return null;
+    }
+    const fullPayload: ShareData = { files: [file], title, text };
+    const titleFilePayload: ShareData = { files: [file], title };
+    const fileOnlyPayload: ShareData = { files: [file] };
+
+    if (typeof navigator.canShare === 'function') {
+      if (navigator.canShare(fullPayload)) return fullPayload;
+      if (navigator.canShare(titleFilePayload)) return titleFilePayload;
+      if (navigator.canShare(fileOnlyPayload)) return fileOnlyPayload;
+      return null;
+    }
+
+    // Fallback for older iOS WebKit builds that expose navigator.share without canShare
+    return fileOnlyPayload;
+  } catch {
+    return null;
+  }
 }
 
 export function canNativeShareFile(file: File): boolean {
-  try {
-    return (
-      typeof navigator !== 'undefined' &&
-      typeof navigator.share === 'function' &&
-      typeof navigator.canShare === 'function' &&
-      navigator.canShare({ files: [file] })
-    );
-  } catch {
-    return false;
-  }
+  return getBestNativeFileShareData(file, file.name, '') !== null;
 }
 
 export function splitKhmerName(
