@@ -50,6 +50,16 @@ const LEAVE_REASON_PRESETS = [
   'អាណាព្យាបាលសុំច្បាប់',
 ];
 
+const KHMER_FULL_WEEKDAYS = [
+  'អាទិត្យ',
+  'ចន្ទ',
+  'អង្គារ',
+  'ពុធ',
+  'ព្រហស្បតិ៍',
+  'សុក្រ',
+  'សៅរ៍',
+] as const;
+
 interface AttendanceTabProps {
   user: User | null;
   isLoggingIn?: boolean;
@@ -290,6 +300,12 @@ export const AttendanceTab: React.FC<AttendanceTabProps> = ({
   }, [activeDay, viewMode]);
 
   const activeDayInfo = calendarDays[activeDay - 1] || calendarDays[0];
+  const activeWeekdayFull =
+    KHMER_FULL_WEEKDAYS[activeDayInfo?.weekdayIndex ?? 0] || '';
+  const activeDateFormatted = `${activeWeekdayFull}_${String(activeDay).padStart(
+    2,
+    '0'
+  )}-${String(activeMonth).padStart(2, '0')}-${activeYear}`;
   const activeHoliday = useMemo(
     () => getHolidayByDate(holidays, activeYear, activeMonth, activeDay),
     [holidays, activeYear, activeMonth, activeDay]
@@ -579,10 +595,10 @@ export const AttendanceTab: React.FC<AttendanceTabProps> = ({
             <button
               type="button"
               onClick={() => onClearDayAllPresent(activeDay)}
-              className="btn-secondary min-h-[46px] px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shrink-0 whitespace-nowrap"
+              className="min-h-[46px] px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shrink-0 whitespace-nowrap border border-sky-300 dark:border-sky-700/80 bg-sky-100 dark:bg-sky-900/50 text-sky-800 dark:text-sky-200 hover:bg-sky-200/80 dark:hover:bg-sky-900/75 shadow-xs transition-all active:scale-[0.98]"
             >
-              <CheckCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span>កំណត់មករៀនទាំងអស់ (ថ្ងៃទី {activeDay})</span>
+              <CheckCheck className="w-4 h-4 text-sky-600 dark:text-sky-300" />
+              <span>កំណត់មករៀនទាំងអស់ ({activeDateFormatted})</span>
             </button>
           </div>
 
