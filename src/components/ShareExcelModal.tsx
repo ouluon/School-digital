@@ -8,13 +8,14 @@ import {
   X,
 } from 'lucide-react';
 import {
-  getBestNativeFileShareData,
+  getNativeFileSharePayloads,
   triggerExcelDownload,
 } from '../services/excelExport';
 
 interface ShareExcelModalProps {
   open: boolean;
   file: File | null;
+  csvFile?: File | null;
   sourceLabel: string;
   summaryText: string;
   googleSheetUrl?: string;
@@ -28,6 +29,7 @@ interface ShareExcelModalProps {
 export const ShareExcelModal: React.FC<ShareExcelModalProps> = ({
   open,
   file,
+  csvFile = null,
   sourceLabel,
   summaryText,
   googleSheetUrl,
@@ -48,11 +50,6 @@ export const ShareExcelModal: React.FC<ShareExcelModalProps> = ({
   if (!open || !file) return null;
 
   const sizeKb = Math.max(1, Math.round(file.size / 1024));
-  const nativeSharePayload = getBestNativeFileShareData(
-    file,
-    file.name,
-    summaryText
-  );
 
   const telegramHref = googleSheetUrl
     ? `https://t.me/share/url?url=${encodeURIComponent(
@@ -69,24 +66,55 @@ export const ShareExcelModal: React.FC<ShareExcelModalProps> = ({
   const handleSendToTelegram = async () => {
     setShareFallbackNotice(null);
 
-    if (nativeSharePayload) {
-      try {
-        await navigator.share(nativeSharePayload);
-        onClose();
-        return;
-      } catch (err: unknown) {
-        if (err instanceof Error && err.name === 'AbortError') {
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      // 1) Try native .xlsx file share (supported on iOS Safari and compatible browsers)
+      // 2) Fall back to native .csv spreadsheet file share (permitted by Android Chrome Web Share API)
+      // 3) Fall back to native text/link share sheet (universal Android Chrome / WebView fallback)
+      const candidates: Array<{ payload: ShareData; isFile: boolean }> = [
+        ...getNativeFileSharePayloads(file, file.name, summaryText).map((payload) => ({
+          payload,
+          isFile: true,
+        })),
+        ...(csvFile
+          ? getNativeFileSharePayloads(csvFile, csvFile.name, summaryText).map(
+              (payload) => ({
+                payload,
+                isFile: true,
+              })
+            )
+          : []),
+        {
+          payload: {
+            title: file.name,
+            text: summaryText,
+            ...(googleSheetUrl ? { url: googleSheetUrl } : {}),
+          },
+          isFile: false,
+        },
+      ];
+
+      for (const candidate of candidates) {
+        try {
+          await navigator.share(candidate.payload);
+          if (!candidate.isFile) {
+            triggerExcelDownload(file, file.name);
+          }
+          onClose();
           return;
+        } catch (err: unknown) {
+          if (err instanceof Error && err.name === 'AbortError') {
+            return;
+          }
         }
       }
     }
 
-    // Fallback when browser/iframe/desktop does not allow native file share:
+    // Final fallback when native share is unavailable (e.g., Desktop or restricted iframe):
     // download the Excel file first and offer a direct Telegram link.
     triggerExcelDownload(file, file.name);
     setDownloaded(true);
     setShareFallbackNotice(
-      'កម្មវិធីរុករកនៅលើឧបករណ៍នេះមិនអនុញ្ញាតឱ្យបើកផ្ទាំង Share ឯកសារផ្ទាល់ទេ។ ឯកសារ Excel ត្រូវបានទាញយករួចរាល់ — សូមចុចប៊ូតុងខាងក្រោមដើម្បីបើក Telegram រួចភ្ជាប់ឯកសារនេះផ្ញើ។'
+      'កម្មវិធីរុករកនៅលើឧបករណ៍នេះមិនអនុញ្ញាតឱ្យបើកផ្ទាំង Share ផ្ទាល់ទេ។ ឯកសារ Excel ត្រូវបានទាញយករួចរាល់ — សូមចុចប៊ូតុងខាងក្រោមដើម្បីបើក Telegram រួចភ្ជាប់ឯកសារនេះផ្ញើ។'
     );
   };
 
@@ -210,7 +238,7 @@ export const ShareExcelModal: React.FC<ShareExcelModalProps> = ({
         </div>
 
         <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed text-center">
-          នៅលើទូរស័ព្ទ Android និង iOS ការចុច «ផ្ញើទៅ Telegram» នឹងបើកផ្ទាំងចែករំលែកដើម្បីជ្រើស Telegram និងផ្ញើឯកសារ .xlsx ដោយផ្ទាល់។
+          នៅលើទូរស័ព្ទ Android និង iOS ការចុច «ផ្ញើទៅ Telegram» នឹងបើកផ្ទាំងចែករំលែកដើម្បីជ្រើស Telegram និងផ្ញើដោយផ្ទាល់។
         </p>
       </div>
     </div>

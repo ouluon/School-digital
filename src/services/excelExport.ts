@@ -42,6 +42,7 @@ export type ShareScope = 'attendance' | 'monthly' | 'semester';
 
 export const EXCEL_MIME_TYPE =
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+export const CSV_MIME_TYPE = 'text/csv';
 
 function getExcelWorkbookConstructor(): typeof ExcelTypes.Workbook {
   const ns = ExcelJS as unknown as {
@@ -1287,7 +1288,72 @@ function appendSemesterWorksheet(
   ws.getColumn(remarkCol).width = 18;
 }
 
-export async function generateLocalExcelBlob(params: {
+function extractCellCsvText(cell: ExcelTypes.Cell): string {
+  const val = cell.value;
+  if (val === null || val === undefined) return '';
+  if (typeof val === 'object') {
+    if ('result' in val && val.result !== undefined && val.result !== null) {
+      return String(val.result);
+    }
+    if ('richText' in val && Array.isArray(val.richText)) {
+      return val.richText.map((part) => part.text || '').join('');
+    }
+    if ('text' in val && typeof val.text === 'string') {
+      return val.text;
+    }
+    if (val instanceof Date) {
+      return val.toISOString().slice(0, 10);
+    }
+    return '';
+  }
+  return String(val);
+}
+
+function escapeCsvField(value: string): string {
+  if (/[",\r\n]/.test(value)) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
+
+function workbookToCsvBlob(workbook: ExcelTypes.Workbook): Blob {
+  const lines: string[] = [];
+  workbook.eachSheet((ws, sheetIdx) => {
+    if (sheetIdx > 1) {
+      lines.push('');
+    }
+    const maxCols = ws.columnCount || 1;
+    ws.eachRow({ includeEmpty: false }, (row) => {
+      const cells: string[] = [];
+      let hasContent = false;
+      for (let c = 1; c <= maxCols; c++) {
+        const text = extractCellCsvText(row.getCell(c));
+        if (text !== '') hasContent = true;
+        cells.push(escapeCsvField(text));
+      }
+      if (hasContent) {
+        lines.push(cells.join(','));
+      }
+    });
+  });
+
+  // Prepend UTF-8 BOM so Excel/Sheets on Android and Desktop read Khmer Unicode cleanly
+  return new Blob(['\uFEFF' + lines.join('\r\n')], { type: CSV_MIME_TYPE });
+}
+
+export async function convertXlsxBlobToCsvBlob(xlsxBlob: Blob): Promise<Blob | null> {
+  try {
+    const Workbook = getExcelWorkbookConstructor();
+    const workbook = new Workbook();
+    const buffer = await xlsxBlob.arrayBuffer();
+    await workbook.xlsx.load(buffer);
+    return workbookToCsvBlob(workbook);
+  } catch {
+    return null;
+  }
+}
+
+export async function generateLocalShareBlobs(params: {
   scope: ShareScope;
   settings: ClassSettings;
   students: Student[];
@@ -1299,7 +1365,7 @@ export async function generateLocalExcelBlob(params: {
   remarks: RemarksMap;
   semesterScoresByTerm?: SemesterScoresByTerm;
   domainGradesByTerm?: DomainGradesByTerm;
-}): Promise<Blob> {
+}): Promise<{ xlsxBlob: Blob; csvBlob: Blob }> {
   const Workbook = getExcelWorkbookConstructor();
   const workbook = new Workbook();
   workbook.creator = params.settings.teacherName || 'សៀវភៅតាមដានសិស្ស';
@@ -1345,7 +1411,27 @@ export async function generateLocalExcelBlob(params: {
   }
 
   const buffer = await workbook.xlsx.writeBuffer();
-  return new Blob([buffer], { type: EXCEL_MIME_TYPE });
+  return {
+    xlsxBlob: new Blob([buffer], { type: EXCEL_MIME_TYPE }),
+    csvBlob: workbookToCsvBlob(workbook),
+  };
+}
+
+export async function generateLocalExcelBlob(params: {
+  scope: ShareScope;
+  settings: ClassSettings;
+  students: Student[];
+  attendance: AttendanceMap;
+  monthlyScores: ScoreMap;
+  monthlyScoresByMonth: MonthlyScoresByMonth;
+  semesterScores: ScoreMap;
+  domainGrades: DomainGradeMap;
+  remarks: RemarksMap;
+  semesterScoresByTerm?: SemesterScoresByTerm;
+  domainGradesByTerm?: DomainGradesByTerm;
+}): Promise<Blob> {
+  const { xlsxBlob } = await generateLocalShareBlobs(params);
+  return xlsxBlob;
 }
 
 export function triggerExcelDownload(blob: Blob, filename: string) {
@@ -1360,31 +1446,43 @@ export function triggerExcelDownload(blob: Blob, filename: string) {
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
+export function getNativeFileSharePayloads(
+  file: File,
+  title: string,
+  text: string
+): ShareData[] {
+  try {
+    if (typeof navigator === 'undefined' || typeof navigator.share !== 'function') {
+      return [];
+    }
+    const candidates: ShareData[] = [
+      { files: [file], title, text },
+      { files: [file], title },
+      { files: [file] },
+    ];
+
+    if (typeof navigator.canShare === 'function') {
+      return candidates.filter((payload) => {
+        try {
+          return navigator.canShare(payload);
+        } catch {
+          return false;
+        }
+      });
+    }
+
+    return [{ files: [file] }];
+  } catch {
+    return [];
+  }
+}
+
 export function getBestNativeFileShareData(
   file: File,
   title: string,
   text: string
 ): ShareData | null {
-  try {
-    if (typeof navigator === 'undefined' || typeof navigator.share !== 'function') {
-      return null;
-    }
-    const fullPayload: ShareData = { files: [file], title, text };
-    const titleFilePayload: ShareData = { files: [file], title };
-    const fileOnlyPayload: ShareData = { files: [file] };
-
-    if (typeof navigator.canShare === 'function') {
-      if (navigator.canShare(fullPayload)) return fullPayload;
-      if (navigator.canShare(titleFilePayload)) return titleFilePayload;
-      if (navigator.canShare(fileOnlyPayload)) return fileOnlyPayload;
-      return null;
-    }
-
-    // Fallback for older iOS WebKit builds that expose navigator.share without canShare
-    return fileOnlyPayload;
-  } catch {
-    return null;
-  }
+  return getNativeFileSharePayloads(file, title, text)[0] ?? null;
 }
 
 export function canNativeShareFile(file: File): boolean {

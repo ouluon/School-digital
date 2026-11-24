@@ -73,12 +73,14 @@ import {
   syncDataToSpreadsheet,
 } from './services/googleSheets';
 import {
+  CSV_MIME_TYPE,
   EXCEL_MIME_TYPE,
   ShareScope,
   buildShareFilename,
   buildShareSummaryText,
+  convertXlsxBlobToCsvBlob,
   exportGoogleSheetAsExcelBlob,
-  generateLocalExcelBlob,
+  generateLocalShareBlobs,
 } from './services/excelExport';
 import {
   loadUserGradebookFromCloud,
@@ -382,12 +384,14 @@ export default function App() {
     open: boolean;
     scope: ShareScope;
     file: File | null;
+    csvFile: File | null;
     sourceLabel: string;
     summaryText: string;
   }>({
     open: false,
     scope: 'attendance',
     file: null,
+    csvFile: null,
     sourceLabel: '',
     summaryText: '',
   });
@@ -2366,6 +2370,7 @@ export default function App() {
       const token = getAccessToken();
       const canUseDrive = Boolean(activeSheet && token);
       let blob: Blob | null = null;
+      let csvBlob: Blob | null = null;
       let filename = buildShareFilename(scope, settings);
       let sourceLabel = 'បង្កើតតារាង Excel ពីទិន្នន័យបច្ចុប្បន្ន';
 
@@ -2375,6 +2380,7 @@ export default function App() {
             token!,
             activeSheet!.spreadsheetId
           );
+          csvBlob = await convertXlsxBlobToCsvBlob(blob);
           filename = buildShareFilename(scope, settings, activeSheet!.title);
           sourceLabel = 'នាំចេញផ្ទាល់ពី Google Sheet (.xlsx)';
         } catch {
@@ -2384,11 +2390,12 @@ export default function App() {
             );
           }
           blob = null;
+          csvBlob = null;
         }
       }
 
       if (!blob) {
-        blob = await generateLocalExcelBlob({
+        const generated = await generateLocalShareBlobs({
           scope,
           settings,
           students,
@@ -2401,9 +2408,15 @@ export default function App() {
           domainGradesByTerm,
           remarks,
         });
+        blob = generated.xlsxBlob;
+        csvBlob = generated.csvBlob;
       }
 
       const file = new File([blob], filename, { type: EXCEL_MIME_TYPE });
+      const csvFilename = filename.replace(/\.xlsx$/i, '.csv');
+      const csvFile = csvBlob
+        ? new File([csvBlob], csvFilename, { type: CSV_MIME_TYPE })
+        : null;
       const summaryText = buildShareSummaryText(
         scope,
         settings,
@@ -2415,6 +2428,7 @@ export default function App() {
         open: true,
         scope,
         file,
+        csvFile,
         sourceLabel,
         summaryText,
       });
@@ -3212,6 +3226,7 @@ export default function App() {
       <ShareExcelModal
         open={shareModal.open}
         file={shareModal.file}
+        csvFile={shareModal.csvFile}
         sourceLabel={shareModal.sourceLabel}
         summaryText={shareModal.summaryText}
         googleSheetUrl={activeSheet?.url}
