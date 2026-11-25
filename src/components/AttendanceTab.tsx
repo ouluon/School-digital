@@ -517,67 +517,49 @@ export const AttendanceTab: React.FC<AttendanceTabProps> = ({
               })}
             </HorizontalScrollStrip>
 
-            {monthHolidays.length > 0 && (
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                <HorizontalScrollStrip ariaLabel={`ថ្ងៃឈប់ខែ${monthLabel}`}>
-                  <span className="text-[11px] font-semibold text-rose-700 dark:text-rose-400 whitespace-nowrap shrink-0 pr-1">
-                    ថ្ងៃឈប់ខែ{monthLabel}៖
-                  </span>
-                  {monthHolidays.map((h) => {
-                    const isActive = h.day === activeDay;
-                    const isCustomOnly = Boolean(h.isCustom && !h.hasOfficialHoliday);
-                    return (
-                      <button
-                        key={h.date}
-                        type="button"
-                        onClick={() => setSelectedDay(h.day)}
-                        className={`min-h-[32px] px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all active:scale-95 whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
-                          isActive
-                            ? isCustomOnly
-                              ? 'bg-violet-600 text-white border-violet-600 shadow-xs'
-                              : 'bg-rose-600 text-white border-rose-600 shadow-xs'
-                            : isCustomOnly
-                            ? 'bg-violet-50/90 dark:bg-violet-950/50 text-violet-800 dark:text-violet-300 border-violet-200 dark:border-violet-800/70 hover:bg-violet-100 dark:hover:bg-violet-900/50'
-                            : 'bg-rose-50/80 dark:bg-rose-950/50 text-rose-800 dark:text-rose-300 border-rose-200 dark:border-rose-800/70 hover:bg-rose-100 dark:hover:bg-rose-900/50'
-                        }`}
-                      >
-                        <span className="font-mono-num font-bold">ទី {h.day}</span>
-                        <span aria-hidden="true">·</span>
-                        <span>{h.khmerName}</span>
-                      </button>
-                    );
-                  })}
-                </HorizontalScrollStrip>
-              </div>
-            )}
           </div>
 
-          {/* Daily Summary Strip + Search */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-            <div className="surface-card rounded-2xl p-3 flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">សិស្សសរុប</span>
-              <span className="text-lg font-bold font-mono-num text-slate-900 dark:text-slate-100">
-                {students.length}
-              </span>
+          {/* Daily Summary Single-Row Card */}
+          <div className="surface-card rounded-2xl overflow-hidden">
+            <div className="grid grid-cols-4 divide-x divide-slate-200/80 dark:divide-slate-700/80">
+              <div className="px-2 sm:px-4 py-2.5 sm:py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-2 text-center sm:text-left min-w-0">
+                <span className="text-[11px] sm:text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
+                  សិស្សសរុប
+                </span>
+                <span className="text-base sm:text-lg font-bold font-mono-num text-slate-900 dark:text-slate-100">
+                  {students.length}
+                </span>
+              </div>
+              <div className="px-2 sm:px-4 py-2.5 sm:py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-2 text-center sm:text-left min-w-0">
+                <span className="text-[11px] sm:text-xs font-medium text-emerald-700 dark:text-emerald-400 truncate">
+                  មករៀន
+                </span>
+                <span className="text-base sm:text-lg font-bold font-mono-num text-emerald-700 dark:text-emerald-400">
+                  {dailySummary.present}
+                </span>
+              </div>
+              <div className="px-2 sm:px-4 py-2.5 sm:py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-2 text-center sm:text-left min-w-0">
+                <span className="text-[11px] sm:text-xs font-medium text-amber-700 dark:text-amber-400 truncate">
+                  ច្ប / ឈ
+                </span>
+                <span className="text-base sm:text-lg font-bold font-mono-num text-amber-700 dark:text-amber-400">
+                  {dailySummary.excused}
+                </span>
+              </div>
+              <div className="px-2 sm:px-4 py-2.5 sm:py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-2 text-center sm:text-left min-w-0">
+                <span className="text-[11px] sm:text-xs font-medium text-rose-700 dark:text-rose-400 truncate">
+                  <span className="sm:hidden">អច្ប</span>
+                  <span className="hidden sm:inline">អត់ច្បាប់ (អច្ប)</span>
+                </span>
+                <span className="text-base sm:text-lg font-bold font-mono-num text-rose-700 dark:text-rose-400">
+                  {dailySummary.unexcused}
+                </span>
+              </div>
             </div>
-            <div className="surface-card rounded-2xl p-3 flex items-center justify-between">
-              <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">មករៀន</span>
-              <span className="text-lg font-bold font-mono-num text-emerald-700 dark:text-emerald-400">
-                {dailySummary.present}
-              </span>
-            </div>
-            <div className="surface-card rounded-2xl p-3 flex items-center justify-between">
-              <span className="text-xs font-medium text-amber-700 dark:text-amber-400">ច្ប / ឈ</span>
-              <span className="text-lg font-bold font-mono-num text-amber-700 dark:text-amber-400">
-                {dailySummary.excused}
-              </span>
-            </div>
-            <div className="surface-card rounded-2xl p-3 flex items-center justify-between">
-              <span className="text-xs font-medium text-rose-700 dark:text-rose-400">អត់ច្បាប់ (អច្ប)</span>
-              <span className="text-lg font-bold font-mono-num text-rose-700 dark:text-rose-400">
-                {dailySummary.unexcused}
-              </span>
-            </div>
+            <div
+              className="h-[3px] w-full bg-emerald-500 dark:bg-emerald-400"
+              aria-hidden="true"
+            />
           </div>
 
           {/* Search & Bulk Action */}
