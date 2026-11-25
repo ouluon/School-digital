@@ -840,21 +840,23 @@ export const SemesterResultsTab: React.FC<SemesterResultsTabProps> = ({
                   <button
                     type="button"
                     onClick={() => openManageColumnsModal('all')}
+                    aria-label="លាក់/បង្ហាញមុខវិជ្ជា"
                     className="min-h-[30px] px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-blue-300 dark:hover:border-blue-500 hover:text-blue-700 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5"
                   >
-                    <EyeOff className="w-3 h-3" />
+                    <EyeOff className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                     <span>
-                      លាក់/បង្ហាញមុខវិជ្ជា
-                      {effectivelyHiddenCount > 0 ? ` (${effectivelyHiddenCount})` : ''}
+                      លាក់/បង្ហាញ
+                      {effectivelyHiddenCount > 0 ? `(${effectivelyHiddenCount})` : ''}
                     </span>
                   </button>
                   <button
                     type="button"
                     onClick={openEditLabelsModal}
+                    aria-label="កែចំណងជើងមុខវិជ្ជា"
                     className="min-h-[30px] px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-blue-300 dark:hover:border-blue-500 hover:text-blue-700 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5"
                   >
-                    <Pencil className="w-3 h-3" />
-                    <span>កែចំណងជើងមុខវិជ្ជា</span>
+                    <Pencil className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                    <span>កែប្រែ</span>
                   </button>
                 </div>
               </div>
@@ -1256,21 +1258,23 @@ export const SemesterResultsTab: React.FC<SemesterResultsTabProps> = ({
               <button
                 type="button"
                 onClick={() => openManageColumnsModal('all')}
+                aria-label="លាក់/បង្ហាញមុខវិជ្ជា"
                 className="min-h-[30px] px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:border-blue-300 dark:hover:border-blue-500 hover:text-blue-700 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5"
               >
-                <EyeOff className="w-3 h-3" />
+                <EyeOff className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                 <span>
-                  លាក់/បង្ហាញមុខវិជ្ជា
-                  {effectivelyHiddenCount > 0 ? ` (${effectivelyHiddenCount})` : ''}
+                  លាក់/បង្ហាញ
+                  {effectivelyHiddenCount > 0 ? `(${effectivelyHiddenCount})` : ''}
                 </span>
               </button>
               <button
                 type="button"
                 onClick={openEditLabelsModal}
+                aria-label="កែចំណងជើងមុខវិជ្ជា"
                 className="min-h-[30px] px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:border-blue-300 dark:hover:border-blue-500 hover:text-blue-700 dark:hover:text-blue-400 transition-colors flex items-center gap-1.5"
               >
-                <Pencil className="w-3 h-3" />
-                <span>កែមុខវិជ្ជា</span>
+                <Pencil className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                <span>កែប្រែ</span>
               </button>
             </div>
           </div>
