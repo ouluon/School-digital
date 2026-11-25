@@ -758,12 +758,12 @@ export const RosterAndSheetTab: React.FC<RosterAndSheetTabProps> = ({
           )}
         </section>
 
-        {/* Class Settings */}
+        {/* School & Class Settings */}
         <section className="surface-card rounded-2xl p-4 space-y-3">
           <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
-            ព័ត៌មានថ្នាក់រៀន
+            ព័ត៌មានសាលារៀន/ថ្នាក់រៀន
           </h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="space-y-1">
               <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
                 ថ្នាក់ទី
@@ -772,7 +772,7 @@ export const RosterAndSheetTab: React.FC<RosterAndSheetTabProps> = ({
                 type="text"
                 value={settings.className}
                 onChange={(e) =>
-                  onUpdateSettings({ ...settings, className: e.target.value })
+                  onUpdateSettings({ ...settings, maxScore: 10, className: e.target.value })
                 }
                 className="w-full min-h-[42px] px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
               />
@@ -793,6 +793,7 @@ export const RosterAndSheetTab: React.FC<RosterAndSheetTabProps> = ({
                   );
                   onUpdateSettings({
                     ...settings,
+                    maxScore: 10,
                     academicYear: nextAcademicYear,
                     year: mappedYear,
                     monthlyYear: mappedYear,
@@ -807,41 +808,77 @@ export const RosterAndSheetTab: React.FC<RosterAndSheetTabProps> = ({
                 ))}
               </select>
             </label>
-            <label className="space-y-1">
+            <label className="space-y-1 sm:col-span-2">
               <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                ឆមាស
+                រដ្ឋបាលស្រុក / ក្រុង / ខណ្ឌ
               </span>
-              <select
-                value={settings.semester}
+              <input
+                type="text"
+                value={settings.districtAdmin || ''}
+                placeholder="ឧ. រដ្ឋបាលស្រុកសំឡូត"
                 onChange={(e) =>
                   onUpdateSettings({
                     ...settings,
-                    semester: Number(e.target.value) as 1 | 2,
+                    maxScore: 10,
+                    districtAdmin: e.target.value,
                   })
                 }
-                className="w-full min-h-[42px] px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-semibold text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              >
-                <option value={1}>ឆមាសទី ១</option>
-                <option value={2}>ឆមាសទី ២</option>
-              </select>
+                className="w-full min-h-[42px] px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
             </label>
-            <label className="space-y-1">
+            <label className="space-y-1 sm:col-span-2">
               <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                មាត្រដ្ឋានពិន្ទុ
+                ការិយាល័យអប់រំ យុវជន និងកីឡា
               </span>
-              <select
-                value={settings.maxScore}
+              <input
+                type="text"
+                value={settings.educationOffice || ''}
+                placeholder="ឧ. ការិយាល័យអប់រំ យុវជន និងកីឡាស្រុកសំឡូត"
                 onChange={(e) =>
                   onUpdateSettings({
                     ...settings,
-                    maxScore: Number(e.target.value) as 10 | 100,
+                    maxScore: 10,
+                    educationOffice: e.target.value,
                   })
                 }
-                className="w-full min-h-[42px] px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-semibold font-mono-num text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              >
-                <option value={10}>អតិបរមា 10 ពិន្ទុ</option>
-                <option value={100}>អតិបរមា 100 ពិន្ទុ</option>
-              </select>
+                className="w-full min-h-[42px] px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+            </label>
+            <label className="space-y-1 sm:col-span-2">
+              <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                កម្រងសាលារៀន
+              </span>
+              <input
+                type="text"
+                value={settings.schoolCluster || ''}
+                placeholder="ឧ. កម្រងសាលារៀន សុវណ្ណគិរី"
+                onChange={(e) =>
+                  onUpdateSettings({
+                    ...settings,
+                    maxScore: 10,
+                    schoolCluster: e.target.value,
+                  })
+                }
+                className="w-full min-h-[42px] px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+            </label>
+            <label className="space-y-1 sm:col-span-2">
+              <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                សាលារៀន
+              </span>
+              <input
+                type="text"
+                value={settings.schoolName || ''}
+                placeholder="ឧ. សាលាបឋមសិក្សា..."
+                onChange={(e) =>
+                  onUpdateSettings({
+                    ...settings,
+                    maxScore: 10,
+                    schoolName: e.target.value,
+                  })
+                }
+                className="w-full min-h-[42px] px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
             </label>
           </div>
         </section>

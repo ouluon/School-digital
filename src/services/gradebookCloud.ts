@@ -217,7 +217,22 @@ function sanitizePayload(uid: string, data: GradebookCloudPayload) {
   const cleanHiddenAnnualCompetencies = sanitizeHiddenAnnualCompetencyKeys(
     rawSettings.hiddenAnnualCompetencyKeys
   );
-  const sanitizedSettings: ClassSettings = { ...rawSettings };
+  const sanitizedSettings: ClassSettings = {
+    ...rawSettings,
+    maxScore: 10,
+    districtAdmin:
+      typeof rawSettings.districtAdmin === 'string'
+        ? rawSettings.districtAdmin.trim().slice(0, 150)
+        : '',
+    educationOffice:
+      typeof rawSettings.educationOffice === 'string'
+        ? rawSettings.educationOffice.trim().slice(0, 150)
+        : '',
+    schoolCluster:
+      typeof rawSettings.schoolCluster === 'string'
+        ? rawSettings.schoolCluster.trim().slice(0, 150)
+        : '',
+  };
   if (Object.keys(cleanCustomLabels).length > 0) {
     sanitizedSettings.customSubjectLabels = cleanCustomLabels;
   } else {

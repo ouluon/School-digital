@@ -1543,9 +1543,11 @@ export async function generateStudentRosterTemplateExcelBlob(params: {
 
   // Row 4..7: School & Class Metadata
   const metaLines = [
-    'រដ្ឋបាលស្រុក/ក្រុង/ខណ្ឌ ........................',
-    'ការិយាល័យអប់រំ យុវជន និងកីឡា ........................',
-    settings.schoolName || 'សាលាបឋមសិក្សា ........................',
+    settings.districtAdmin?.trim() || 'រដ្ឋបាលស្រុក/ក្រុង/ខណ្ឌ ........................',
+    settings.educationOffice?.trim() || 'ការិយាល័យអប់រំ យុវជន និងកីឡា ........................',
+    settings.schoolCluster?.trim()
+      ? `${settings.schoolCluster.trim()} · ${settings.schoolName || 'សាលាបឋមសិក្សា'}`
+      : settings.schoolName || 'សាលាបឋមសិក្សា ........................',
     `${settings.className || 'ថ្នាក់ទី ........'} (ឆ្នាំសិក្សា ${settings.academicYear})`,
   ];
   metaLines.forEach((line, idx) => {

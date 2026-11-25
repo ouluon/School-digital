@@ -150,6 +150,9 @@ const defaultAcademicStart =
   now.getMonth() + 1 >= 11 ? now.getFullYear() : now.getFullYear() - 1;
 const DEFAULT_SETTINGS: ClassSettings = {
   schoolName: 'សាលាបឋមសិក្សា',
+  districtAdmin: '',
+  educationOffice: '',
+  schoolCluster: '',
   className: 'ថ្នាក់ទី ៦ ក',
   teacherName: '',
   academicYear: `${defaultAcademicStart}-${defaultAcademicStart + 1}`,
@@ -208,6 +211,10 @@ function normalizeLoadedSettings(rawSettings: Partial<ClassSettings> | undefined
   const normalized: ClassSettings = {
     ...DEFAULT_SETTINGS,
     ...s,
+    districtAdmin: typeof s.districtAdmin === 'string' ? s.districtAdmin : '',
+    educationOffice: typeof s.educationOffice === 'string' ? s.educationOffice : '',
+    schoolCluster: typeof s.schoolCluster === 'string' ? s.schoolCluster : '',
+    maxScore: 10,
     attendanceMonth:
       typeof s.attendanceMonth === 'number' ? s.attendanceMonth : baseMonth,
     attendanceYear:

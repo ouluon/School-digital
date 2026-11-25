@@ -459,6 +459,9 @@ export const DEFAULT_SEMESTER_2_MONTHS = [5, 6, 7];
 
 export interface ClassSettings {
   schoolName: string;
+  districtAdmin?: string;
+  educationOffice?: string;
+  schoolCluster?: string;
   className: string;
   teacherName: string;
   academicYear: string;
