@@ -2460,12 +2460,40 @@ export default function App() {
     }
   };
 
-  const headerPeriod =
-    activeTab === 'attendance'
-      ? { month: attendanceMonth, year: attendanceYear }
-      : { month: monthlyMonth, year: monthlyYear };
-  const monthLabel =
-    KHMER_MONTHS.find((m) => m.value === headerPeriod.month)?.label || '';
+  const activeTabHeader = useMemo(() => {
+    switch (activeTab) {
+      case 'attendance':
+        return {
+          title: 'អវត្តមានសិស្សប្រចាំខែ',
+          Icon: CalendarCheck,
+          iconClass:
+            'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border-blue-200/80 dark:border-blue-800/60',
+        };
+      case 'monthly':
+        return {
+          title: 'ពិន្ទុប្រឡងប្រចាំខែ',
+          Icon: ClipboardList,
+          iconClass:
+            'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200/80 dark:border-emerald-800/60',
+        };
+      case 'semester':
+        return {
+          title: 'ពិន្ទុប្រឡងឆមាស/ប្រចាំឆ្នាំ',
+          Icon: Award,
+          iconClass:
+            'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200/80 dark:border-amber-800/60',
+        };
+      case 'roster':
+      default:
+        return {
+          title: 'ព័ត៌មានគ្រូ/សិស្ស',
+          Icon: Users,
+          iconClass:
+            'bg-violet-50 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 border-violet-200/80 dark:border-violet-800/60',
+        };
+    }
+  }, [activeTab]);
+  const ActiveTabIcon = activeTabHeader.Icon;
 
   return (
     <UserProfileProvider
@@ -2641,62 +2669,68 @@ export default function App() {
 
       {/* Main Content Container */}
       <main className="w-full min-w-0 max-w-7xl mx-auto px-3.5 sm:px-6 pt-4 space-y-4">
-        {/* Contextual Class Metadata & Google Sheet Status Strip */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5 text-xs text-slate-600 dark:text-slate-400 px-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-slate-900 dark:text-slate-100">
-              {settings.className}
-            </span>
-            <span aria-hidden="true">·</span>
-            <span>
-              ខែ{monthLabel} {headerPeriod.year}
-            </span>
-            <span aria-hidden="true">·</span>
-            <span>ឆមាសទី {settings.semester === 1 ? '១' : '២'}</span>
-            <span aria-hidden="true">·</span>
-            <span className="font-mono-num">{students.length} សិស្ស</span>
-            {autoSaveState !== 'idle' && (
-              <>
-                <span aria-hidden="true">·</span>
-                {autoSaveState === 'saving' ? (
-                  <span className="inline-flex items-center gap-1 font-medium text-blue-700 dark:text-blue-400">
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                    <span>កំពុងរក្សាទុកស្វ័យប្រវត្តិ...</span>
-                  </span>
-                ) : autoSaveState === 'synced_sheet' ? (
-                  <span className="inline-flex items-center gap-1 font-medium text-emerald-700 dark:text-emerald-400">
-                    <CheckCircle2 className="w-3 h-3" />
-                    <span>បានរក្សាទុកស្វ័យប្រវត្តិ (Cloud &amp; Sheet)</span>
-                  </span>
-                ) : autoSaveState === 'saved_cloud' ? (
-                  <span className="inline-flex items-center gap-1 font-medium text-emerald-700 dark:text-emerald-400">
-                    <CheckCircle2 className="w-3 h-3" />
-                    <span>
-                      {activeSheet && hasUnsavedChanges && !hasToken
-                        ? 'បានរក្សាទុកក្នុងគណនីស្វ័យប្រវត្តិ (រង់ចាំផ្ទុកទៅ Sheet)'
-                        : 'បានរក្សាទុកក្នុងគណនីស្វ័យប្រវត្តិ'}
-                    </span>
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 font-medium text-slate-700 dark:text-slate-300">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                    <span>បានរក្សាទុកក្នុងឧបករណ៍ស្វ័យប្រវត្តិ</span>
-                  </span>
-                )}
-              </>
-            )}
+        {/* Dynamic Page Heading & Sync Status Strip */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+          <div className="flex items-center gap-3 min-w-0">
+            <div
+              className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl border flex items-center justify-center shrink-0 ${activeTabHeader.iconClass}`}
+              aria-hidden="true"
+            >
+              <ActiveTabIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
+            <h1 className="text-xl sm:text-2xl md:text-[26px] font-bold tracking-tight text-slate-900 dark:text-slate-100 leading-snug text-balance">
+              {activeTabHeader.title}
+            </h1>
           </div>
 
-          {activeSheet && (
-            <a
-              href={activeSheet.url}
-              target="_blank"
-              rel="noreferrer"
-              className="ml-auto inline-flex items-center gap-1 font-semibold text-blue-700 dark:text-blue-400 hover:underline whitespace-nowrap"
-            >
-              <span className="truncate max-w-[200px]">{activeSheet.title}</span>
-              <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-            </a>
+          {(autoSaveState !== 'idle' || activeSheet) && (
+            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600 dark:text-slate-400 ml-auto">
+              {autoSaveState !== 'idle' && (
+                <>
+                  {autoSaveState === 'saving' ? (
+                    <span className="inline-flex items-center gap-1 font-medium text-blue-700 dark:text-blue-400">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <span>កំពុងរក្សាទុកស្វ័យប្រវត្តិ...</span>
+                    </span>
+                  ) : autoSaveState === 'synced_sheet' ? (
+                    <span className="inline-flex items-center gap-1 font-medium text-emerald-700 dark:text-emerald-400">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>បានរក្សាទុកស្វ័យប្រវត្តិ (Cloud &amp; Sheet)</span>
+                    </span>
+                  ) : autoSaveState === 'saved_cloud' ? (
+                    <span className="inline-flex items-center gap-1 font-medium text-emerald-700 dark:text-emerald-400">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>
+                        {activeSheet && hasUnsavedChanges && !hasToken
+                          ? 'បានរក្សាទុកក្នុងគណនីស្វ័យប្រវត្តិ (រង់ចាំផ្ទុកទៅ Sheet)'
+                          : 'បានរក្សាទុកក្នុងគណនីស្វ័យប្រវត្តិ'}
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 font-medium text-slate-700 dark:text-slate-300">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                      <span>បានរក្សាទុកក្នុងឧបករណ៍ស្វ័យប្រវត្តិ</span>
+                    </span>
+                  )}
+                </>
+              )}
+
+              {autoSaveState !== 'idle' && activeSheet && (
+                <span aria-hidden="true">·</span>
+              )}
+
+              {activeSheet && (
+                <a
+                  href={activeSheet.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 font-semibold text-blue-700 dark:text-blue-400 hover:underline whitespace-nowrap"
+                >
+                  <span className="truncate max-w-[200px]">{activeSheet.title}</span>
+                  <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                </a>
+              )}
+            </div>
           )}
         </div>
 
