@@ -21,13 +21,14 @@ import {
   SubjectGroup,
   SubjectItem,
   getAttendanceMonthYear,
+  getEffectivelyHiddenAnnualCompetencyKeySet,
+  getEffectivelyHiddenMonthlySubjectKeySet,
+  getEffectivelyHiddenSemesterSubjectKeySet,
   getMonthlyScoresMonthYear,
   getMonthKey,
+  getResolvedMonthlySubjectGroups,
   getResolvedMonthlySubjects,
   getResolvedSemesterExamSubjects,
-  getVisibleAnnualCompetencySubjects,
-  getVisibleMonthlySubjectGroups,
-  getVisibleSemesterSubjects,
 } from '../types/gradebook';
 import {
   SemesterResult,
@@ -335,15 +336,23 @@ function buildMonthlyScoreValues(
   values: (string | number)[][];
   visibleGroups: SubjectGroup[];
   visibleSubjects: SubjectItem[];
+  hiddenColIndices: number[];
   avgColLetter: string;
 } {
   const maxScore = settings.maxScore;
-  const visibleGroups = getVisibleMonthlySubjectGroups(
+  const visibleGroups = getResolvedMonthlySubjectGroups(settings);
+  const visibleSubjects = visibleGroups.flatMap((g) => g.subjects);
+  const hiddenMonthlyKeys = getEffectivelyHiddenMonthlySubjectKeySet(
     settings,
     monthlyScores,
     students
   );
-  const visibleSubjects = visibleGroups.flatMap((g) => g.subjects);
+  const hiddenColIndices: number[] = [];
+  visibleSubjects.forEach((sub, idx) => {
+    if (hiddenMonthlyKeys.has(sub.key)) {
+      hiddenColIndices.push(3 + idx);
+    }
+  });
   const row0: (string | number)[] = ['លេខរៀង', 'គោត្តនាម និងនាម', 'ភេទ'];
   const row1: (string | number)[] = ['', '', ''];
 
@@ -432,6 +441,7 @@ function buildMonthlyScoreValues(
     values: [row0, row1, ...studentRows],
     visibleGroups,
     visibleSubjects,
+    hiddenColIndices,
     avgColLetter,
   };
 }
@@ -456,17 +466,26 @@ function buildSemesterResultValues(
   visibleExamSubjects: { key: string; label: string; highlight?: boolean }[];
   visibleCompSubjects: SubjectItem[];
   visibleAnnualCompSubjects: SubjectItem[];
+  hiddenColIndices: number[];
   semAvgColLetter: string;
 } {
   const isSem2 = term === 2;
   const maxScore = settings.maxScore;
-  const {
-    examSubjects: visibleExamSubjects,
-    competencySubjects: visibleCompSubjects,
-  } = getVisibleSemesterSubjects(settings, semesterScores, students);
-  const visibleAnnualCompSubjects = isSem2
-    ? getVisibleAnnualCompetencySubjects(settings, annualOptions?.annualScores, students)
-    : [];
+  const visibleExamSubjects = getResolvedSemesterExamSubjects(settings);
+  const visibleCompSubjects = SEMESTER_COMPETENCY_SUBJECTS;
+  const visibleAnnualCompSubjects = isSem2 ? SEMESTER_COMPETENCY_SUBJECTS : [];
+  const hiddenSemesterKeys = getEffectivelyHiddenSemesterSubjectKeySet(
+    settings,
+    semesterScores,
+    students
+  );
+  const hiddenAnnualKeys = isSem2
+    ? getEffectivelyHiddenAnnualCompetencyKeySet(
+        settings,
+        annualOptions?.annualScores,
+        students
+      )
+    : new Set<string>();
 
   const examCount = visibleExamSubjects.length;
   const compCount = visibleCompSubjects.length;
@@ -703,12 +722,32 @@ function buildSemesterResultValues(
     ];
   });
 
+  const hiddenColIndices: number[] = [];
+  visibleExamSubjects.forEach((sub, idx) => {
+    if (hiddenSemesterKeys.has(sub.key)) {
+      hiddenColIndices.push(examStartIdx + idx);
+    }
+  });
+  visibleCompSubjects.forEach((sub, idx) => {
+    if (hiddenSemesterKeys.has(sub.key)) {
+      hiddenColIndices.push(compStartIdx + idx);
+    }
+  });
+  if (isSem2) {
+    visibleAnnualCompSubjects.forEach((sub, idx) => {
+      if (hiddenAnnualKeys.has(sub.key)) {
+        hiddenColIndices.push(annCompStartIdx + idx);
+      }
+    });
+  }
+
   const headerRows = isSem2 ? [row0, row1, row2] : [row0, row1];
   return {
     values: [...headerRows, ...studentRows],
     visibleExamSubjects,
     visibleCompSubjects,
     visibleAnnualCompSubjects,
+    hiddenColIndices,
     semAvgColLetter,
   };
 }
@@ -920,7 +959,8 @@ function buildMonthlyFormattingRequests(
   mId: number,
   studentCount: number,
   visibleGroups: SubjectGroup[],
-  visibleSubjects: SubjectItem[]
+  visibleSubjects: SubjectItem[],
+  hiddenColIndices: number[] = []
 ): any[] {
   const subCount = visibleSubjects.length;
   const resStartIdx = 3 + subCount;
@@ -1030,6 +1070,14 @@ function buildMonthlyFormattingRequests(
       : []),
     { updateDimensionProperties: { range: { sheetId: mId, dimension: 'COLUMNS', startIndex: resStartIdx, endIndex: remarkIdx }, properties: { pixelSize: 56 }, fields: 'pixelSize' } },
     { updateDimensionProperties: { range: { sheetId: mId, dimension: 'COLUMNS', startIndex: remarkIdx, endIndex: mCols }, properties: { pixelSize: 90 }, fields: 'pixelSize' } },
+    { updateDimensionProperties: { range: { sheetId: mId, dimension: 'COLUMNS', startIndex: 0, endIndex: mCols }, properties: { hiddenByUser: false }, fields: 'hiddenByUser' } },
+    ...hiddenColIndices.map((colIdx) => ({
+      updateDimensionProperties: {
+        range: { sheetId: mId, dimension: 'COLUMNS', startIndex: colIdx, endIndex: colIdx + 1 },
+        properties: { hiddenByUser: true },
+        fields: 'hiddenByUser',
+      },
+    })),
   ];
 
   if (studentCount > 0) {
@@ -1071,7 +1119,8 @@ function buildSemesterFormattingRequests(
   visibleExamSubjects: { key: string; label: string; highlight?: boolean }[],
   visibleCompSubjects: SubjectItem[],
   visibleAnnualCompSubjects: SubjectItem[],
-  isSem2: boolean
+  isSem2: boolean,
+  hiddenColIndices: number[] = []
 ): any[] {
   const headerRowCount = isSem2 ? 3 : 2;
   const groupRowIdx = isSem2 ? 1 : 0;
@@ -1289,6 +1338,14 @@ function buildSemesterFormattingRequests(
         ]
       : []),
     { updateDimensionProperties: { range: { sheetId: sId, dimension: 'COLUMNS', startIndex: remarkIdx, endIndex: sCols }, properties: { pixelSize: 90 }, fields: 'pixelSize' } },
+    { updateDimensionProperties: { range: { sheetId: sId, dimension: 'COLUMNS', startIndex: 0, endIndex: sCols }, properties: { hiddenByUser: false }, fields: 'hiddenByUser' } },
+    ...hiddenColIndices.map((colIdx) => ({
+      updateDimensionProperties: {
+        range: { sheetId: sId, dimension: 'COLUMNS', startIndex: colIdx, endIndex: colIdx + 1 },
+        properties: { hiddenByUser: true },
+        fields: 'hiddenByUser',
+      },
+    })),
   ];
 
   if (studentCount > 0) {
@@ -1527,7 +1584,8 @@ export async function syncDataToSpreadsheet(
         sheetId,
         students.length,
         built.visibleGroups,
-        built.visibleSubjects
+        built.visibleSubjects,
+        built.hiddenColIndices
       )
     );
   }
@@ -1598,7 +1656,8 @@ export async function syncDataToSpreadsheet(
         builtSem.visibleExamSubjects,
         builtSem.visibleCompSubjects,
         builtSem.visibleAnnualCompSubjects,
-        term === 2
+        term === 2,
+        builtSem.hiddenColIndices
       )
     );
   }

@@ -243,6 +243,31 @@ export function getVisibleMonthlySubjectGroups(
   return filtered.length > 0 ? filtered : resolved;
 }
 
+export function getEffectivelyHiddenMonthlySubjectKeySet(
+  settings?: Pick<ClassSettings, 'hiddenMonthlySubjectKeys'> | null,
+  monthlyScores?: ScoreMap,
+  students?: Student[],
+  competencyRubrics?: CompetencyRubricMap
+): Set<string> {
+  const hiddenKeys = settings?.hiddenMonthlySubjectKeys;
+  if (!hiddenKeys || hiddenKeys.length === 0) {
+    return new Set();
+  }
+  const out = new Set<string>();
+  for (const key of hiddenKeys) {
+    if (
+      monthlyScores &&
+      students &&
+      subjectHasScoresInMonth(key, students, monthlyScores, competencyRubrics)
+        .hasScores
+    ) {
+      continue;
+    }
+    out.add(key);
+  }
+  return out.size >= ALL_MONTHLY_SUBJECTS.length ? new Set() : out;
+}
+
 export const SEMESTER_EXAM_SUBJECTS: { key: string; label: string; highlight?: boolean }[] = [
   { key: 'sem_read', label: 'អំណាន' },
   { key: 'sem_listen_speak', label: 'ស្តាប់ និងនិយាយ' },
@@ -430,6 +455,66 @@ export function getVisibleAnnualCompetencySubjects(
     }
     return false;
   });
+}
+
+export function getEffectivelyHiddenSemesterSubjectKeySet(
+  settings?: Pick<ClassSettings, 'hiddenSemesterSubjectKeys'> | null,
+  semesterScores?: ScoreMap,
+  students?: Student[],
+  competencyRubrics?: CompetencyRubricMap
+): Set<string> {
+  const hiddenKeys = settings?.hiddenSemesterSubjectKeys;
+  if (!hiddenKeys || hiddenKeys.length === 0) {
+    return new Set();
+  }
+  const out = new Set<string>();
+  for (const key of hiddenKeys) {
+    if (
+      semesterScores &&
+      students &&
+      subjectHasScoresInSemester(
+        key,
+        students,
+        semesterScores,
+        competencyRubrics
+      ).hasScores
+    ) {
+      continue;
+    }
+    out.add(key);
+  }
+  const totalHideable =
+    SEMESTER_EXAM_SUBJECTS.length + SEMESTER_COMPETENCY_SUBJECTS.length;
+  return out.size >= totalHideable ? new Set() : out;
+}
+
+export function getEffectivelyHiddenAnnualCompetencyKeySet(
+  settings?: Pick<ClassSettings, 'hiddenAnnualCompetencyKeys'> | null,
+  annualScores?: ScoreMap,
+  students?: Student[],
+  annualCompetencyRubrics?: CompetencyRubricMap
+): Set<string> {
+  const hiddenKeys = settings?.hiddenAnnualCompetencyKeys;
+  if (!hiddenKeys || hiddenKeys.length === 0) {
+    return new Set();
+  }
+  const out = new Set<string>();
+  for (const key of hiddenKeys) {
+    if (
+      annualScores &&
+      students &&
+      subjectHasScoresInSemester(
+        key,
+        students,
+        annualScores,
+        annualCompetencyRubrics
+      ).hasScores
+    ) {
+      continue;
+    }
+    out.add(key);
+  }
+  return out;
 }
 
 export const DOMAIN_GRADES: { key: string; label: string }[] = [

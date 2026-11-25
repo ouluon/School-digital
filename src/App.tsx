@@ -2452,6 +2452,8 @@ export default function App() {
           domainGrades: currentDomainGrades,
           semesterScoresByTerm,
           domainGradesByTerm,
+          competencyRubricsByMonth,
+          competencyRubricsByTerm,
           remarks,
         });
         blob = generated.xlsxBlob;

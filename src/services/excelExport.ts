@@ -4,6 +4,9 @@ import {
   AttendanceMap,
   COMPETENCY_SUBJECT_KEYS,
   ClassSettings,
+  CompetencyRubricMap,
+  CompetencyRubricsByMonth,
+  CompetencyRubricsByTerm,
   DOMAIN_GRADES,
   DomainGradeMap,
   DomainGradesByTerm,
@@ -15,10 +18,13 @@ import {
   SemesterScoresByTerm,
   Student,
   getAttendanceMonthYear,
+  getEffectivelyHiddenAnnualCompetencyKeySet,
+  getEffectivelyHiddenMonthlySubjectKeySet,
+  getEffectivelyHiddenSemesterSubjectKeySet,
+  getMonthKey,
   getMonthlyScoresMonthYear,
-  getVisibleAnnualCompetencySubjects,
-  getVisibleMonthlySubjectGroups,
-  getVisibleSemesterSubjects,
+  getResolvedMonthlySubjectGroups,
+  getResolvedSemesterExamSubjects,
 } from '../types/gradebook';
 import {
   colIndexToLetter,
@@ -417,19 +423,22 @@ function appendMonthlyWorksheet(
   settings: ClassSettings,
   students: Student[],
   monthlyScores: ScoreMap,
-  remarks: RemarksMap
+  remarks: RemarksMap,
+  competencyRubrics?: CompetencyRubricMap
 ) {
   const { month: monMonth, year: monYear } = getMonthlyScoresMonthYear(settings);
   const monthLabel =
     KHMER_MONTHS.find((m) => m.value === monMonth)?.label || `${monMonth}`;
-  const visibleGroups = getVisibleMonthlySubjectGroups(
+  const allGroups = getResolvedMonthlySubjectGroups(settings);
+  const allSubjects = allGroups.flatMap((g) => g.subjects);
+  const hiddenMonthlyKeys = getEffectivelyHiddenMonthlySubjectKeySet(
     settings,
     monthlyScores,
-    students
+    students,
+    competencyRubrics
   );
-  const visibleSubjects = visibleGroups.flatMap((g) => g.subjects);
-  const subCount = visibleSubjects.length;
-  const totalCols = 4 + subCount + 5; // 4 base + visible subjects + 4 results + 1 remark
+  const subCount = allSubjects.length;
+  const totalCols = 4 + subCount + 5; // 4 base + all subjects (hidden ones marked hidden in Excel) + 4 results + 1 remark
 
   const ws = workbook.addWorksheet(
     sanitizeSheetName(getMonthlyTabName(monMonth))
@@ -462,7 +471,7 @@ function appendMonthlyWorksheet(
   });
 
   let curCol = 5;
-  visibleGroups.forEach((grp) => {
+  allGroups.forEach((grp) => {
     if (grp.standalone) {
       ws.mergeCells(headerRow1, curCol, headerRow2, curCol);
       const c = ws.getCell(headerRow1, curCol);
@@ -545,15 +554,15 @@ function appendMonthlyWorksheet(
   ws.getRow(headerRow2).height = 76;
 
   const results = computeMonthlyResults(students, monthlyScores, settings.maxScore);
-  const academicCount = visibleSubjects.filter(
+  const academicCount = allSubjects.filter(
     (s) => !COMPETENCY_SUBJECT_KEYS.has(s.key)
   ).length;
   const firstSubLetter = colIndexToLetter(4); // E
   const lastAcademicLetter =
     academicCount > 0 ? colIndexToLetter(4 + academicCount - 1) : '';
-  const knowledgeIdx = visibleSubjects.findIndex((s) => s.key === 'comp_knowledge');
-  const skillsIdx = visibleSubjects.findIndex((s) => s.key === 'comp_skills');
-  const attitudeIdx = visibleSubjects.findIndex((s) => s.key === 'comp_attitude');
+  const knowledgeIdx = allSubjects.findIndex((s) => s.key === 'comp_knowledge');
+  const skillsIdx = allSubjects.findIndex((s) => s.key === 'comp_skills');
+  const attitudeIdx = allSubjects.findIndex((s) => s.key === 'comp_attitude');
   const knowledgeLetter =
     knowledgeIdx >= 0 ? colIndexToLetter(4 + knowledgeIdx) : '';
   const skillsLetter = skillsIdx >= 0 ? colIndexToLetter(4 + skillsIdx) : '';
@@ -585,7 +594,7 @@ function appendMonthlyWorksheet(
     row.getCell(3).border = THIN_BORDER;
 
     const stuScores = monthlyScores[stu.id] || {};
-    visibleSubjects.forEach((sub, sIdx) => {
+    allSubjects.forEach((sub, sIdx) => {
       const cell = row.getCell(5 + sIdx);
       const val = stuScores[sub.key];
       if (sub.key === 'comp_knowledge') {
@@ -673,9 +682,13 @@ function appendMonthlyWorksheet(
   ws.getColumn(2).width = 11;
   ws.getColumn(3).width = 24;
   ws.getColumn(4).width = 7;
-  for (let i = 0; i < subCount; i++) {
-    ws.getColumn(5 + i).width = 6;
-  }
+  allSubjects.forEach((sub, i) => {
+    const col = ws.getColumn(5 + i);
+    col.width = 6;
+    if (hiddenMonthlyKeys.has(sub.key)) {
+      col.hidden = true;
+    }
+  });
   for (let i = 0; i < 4; i++) {
     ws.getColumn(resStartCol + i).width = 8.5;
   }
@@ -691,22 +704,34 @@ function appendSemesterWorksheet(
   domainGrades: DomainGradeMap,
   remarks: RemarksMap,
   semesterScoresByTerm?: SemesterScoresByTerm,
-  domainGradesByTerm?: DomainGradesByTerm
+  domainGradesByTerm?: DomainGradesByTerm,
+  competencyRubrics?: CompetencyRubricMap,
+  annualCompetencyRubrics?: CompetencyRubricMap
 ) {
   const isSem2 = settings.semester === 2;
   const semText = isSem2 ? '២' : '១';
-  const {
-    examSubjects: visibleExamSubjects,
-    competencySubjects: visibleCompSubjects,
-  } = getVisibleSemesterSubjects(settings, semesterScores, students);
+  const allExamSubjects = getResolvedSemesterExamSubjects(settings);
+  const allCompSubjects = SEMESTER_COMPETENCY_SUBJECTS;
   const annualScoresMap = semesterScoresByTerm?.['annual'] || {};
-  const visibleAnnualCompSubjects = isSem2
-    ? getVisibleAnnualCompetencySubjects(settings, annualScoresMap, students)
-    : [];
-  const examCount = visibleExamSubjects.length;
-  const compCount = visibleCompSubjects.length;
+  const allAnnualCompSubjects = isSem2 ? SEMESTER_COMPETENCY_SUBJECTS : [];
+  const hiddenSemesterKeys = getEffectivelyHiddenSemesterSubjectKeySet(
+    settings,
+    semesterScores,
+    students,
+    competencyRubrics
+  );
+  const hiddenAnnualKeys = isSem2
+    ? getEffectivelyHiddenAnnualCompetencyKeySet(
+        settings,
+        annualScoresMap,
+        students,
+        annualCompetencyRubrics
+      )
+    : new Set<string>();
+  const examCount = allExamSubjects.length;
+  const compCount = allCompSubjects.length;
   const domCount = DOMAIN_GRADES.length; // 4
-  const annCompCount = isSem2 ? visibleAnnualCompSubjects.length : 0;
+  const annCompCount = isSem2 ? allAnnualCompSubjects.length : 0;
   const annResCount = isSem2 ? 3 : 0;
   const annDomCount = isSem2 ? domCount : 0;
   const annualCount = annCompCount + annResCount + annDomCount;
@@ -784,7 +809,7 @@ function appendSemesterWorksheet(
     examGrp.alignment = { vertical: 'middle', horizontal: 'center' };
     examGrp.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
 
-    visibleExamSubjects.forEach((sub, idx) => {
+    allExamSubjects.forEach((sub, idx) => {
       const col = examStartCol + idx;
       ws.getCell(headerRow2, col).border = THIN_BORDER;
       const cell = ws.getCell(leafHeaderRow, col);
@@ -811,7 +836,7 @@ function appendSemesterWorksheet(
     compGrp.alignment = { vertical: 'middle', horizontal: 'center' };
     compGrp.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFF6FF' } };
 
-    visibleCompSubjects.forEach((sub, idx) => {
+    allCompSubjects.forEach((sub, idx) => {
       const col = compStartCol + idx;
       ws.getCell(headerRow2, col).border = THIN_BORDER;
       const cell = ws.getCell(leafHeaderRow, col);
@@ -904,7 +929,7 @@ function appendSemesterWorksheet(
       annCompGrp.alignment = { vertical: 'middle', horizontal: 'center' };
       annCompGrp.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
 
-      visibleAnnualCompSubjects.forEach((sub, idx) => {
+      allAnnualCompSubjects.forEach((sub, idx) => {
         const col = annCompStartCol + idx;
         ws.getCell(headerRow2, col).border = THIN_BORDER;
         const cell = ws.getCell(leafHeaderRow, col);
@@ -1020,9 +1045,9 @@ function appendSemesterWorksheet(
 
   const firstExamLetter = examCount > 0 ? colIndexToLetter(examStartCol - 1) : '';
   const lastExamLetter = examCount > 0 ? colIndexToLetter(examEndCol - 1) : '';
-  const knowledgeIdx = visibleCompSubjects.findIndex((s) => s.key === 'comp_knowledge');
-  const skillsIdx = visibleCompSubjects.findIndex((s) => s.key === 'comp_skills');
-  const attitudeIdx = visibleCompSubjects.findIndex((s) => s.key === 'comp_attitude');
+  const knowledgeIdx = allCompSubjects.findIndex((s) => s.key === 'comp_knowledge');
+  const skillsIdx = allCompSubjects.findIndex((s) => s.key === 'comp_skills');
+  const attitudeIdx = allCompSubjects.findIndex((s) => s.key === 'comp_attitude');
   const knowledgeLetter =
     knowledgeIdx >= 0 ? colIndexToLetter(compStartCol - 1 + knowledgeIdx) : '';
   const skillsLetter =
@@ -1034,13 +1059,13 @@ function appendSemesterWorksheet(
   const monthAvgLetter = colIndexToLetter(resStartCol);
   const semAvgLetter = colIndexToLetter(resStartCol + 1);
 
-  const annKnowledgeIdx = visibleAnnualCompSubjects.findIndex(
+  const annKnowledgeIdx = allAnnualCompSubjects.findIndex(
     (s) => s.key === 'comp_knowledge'
   );
-  const annSkillsIdx = visibleAnnualCompSubjects.findIndex(
+  const annSkillsIdx = allAnnualCompSubjects.findIndex(
     (s) => s.key === 'comp_skills'
   );
-  const annAttitudeIdx = visibleAnnualCompSubjects.findIndex(
+  const annAttitudeIdx = allAnnualCompSubjects.findIndex(
     (s) => s.key === 'comp_attitude'
   );
   const annKnowledgeLetter =
@@ -1082,7 +1107,7 @@ function appendSemesterWorksheet(
     row.getCell(3).border = THIN_BORDER;
 
     const stuScores = semesterScores[stu.id] || {};
-    visibleExamSubjects.forEach((sub, sIdx) => {
+    allExamSubjects.forEach((sub, sIdx) => {
       const cell = row.getCell(examStartCol + sIdx);
       const val = stuScores[sub.key];
       cell.value = typeof val === 'number' && !Number.isNaN(val) ? val : null;
@@ -1094,7 +1119,7 @@ function appendSemesterWorksheet(
       cell.border = THIN_BORDER;
     });
 
-    visibleCompSubjects.forEach((sub, cIdx) => {
+    allCompSubjects.forEach((sub, cIdx) => {
       const cell = row.getCell(compStartCol + cIdx);
       const val = stuScores[sub.key];
       if (sub.key === 'comp_knowledge') {
@@ -1186,7 +1211,7 @@ function appendSemesterWorksheet(
       const annRes = annualResults[stu.id];
       const sem1AvgVal = Number((sem1Results[stu.id]?.semesterAverage ?? 0).toFixed(4));
 
-      visibleAnnualCompSubjects.forEach((sub, cIdx) => {
+      allAnnualCompSubjects.forEach((sub, cIdx) => {
         const cell = row.getCell(annCompStartCol + cIdx);
         const val = stuAnnScores[sub.key];
         if (sub.key === 'comp_knowledge') {
@@ -1262,12 +1287,20 @@ function appendSemesterWorksheet(
   ws.getColumn(2).width = 11;
   ws.getColumn(3).width = 24;
   ws.getColumn(4).width = 7;
-  for (let i = 0; i < examCount; i++) {
-    ws.getColumn(examStartCol + i).width = 6.5;
-  }
-  for (let i = 0; i < compCount; i++) {
-    ws.getColumn(compStartCol + i).width = 6.5;
-  }
+  allExamSubjects.forEach((sub, i) => {
+    const col = ws.getColumn(examStartCol + i);
+    col.width = 6.5;
+    if (hiddenSemesterKeys.has(sub.key)) {
+      col.hidden = true;
+    }
+  });
+  allCompSubjects.forEach((sub, i) => {
+    const col = ws.getColumn(compStartCol + i);
+    col.width = 6.5;
+    if (hiddenSemesterKeys.has(sub.key)) {
+      col.hidden = true;
+    }
+  });
   for (let i = 0; i < 5; i++) {
     ws.getColumn(resStartCol + i).width = 8.5;
   }
@@ -1275,9 +1308,13 @@ function appendSemesterWorksheet(
     ws.getColumn(domStartCol + i).width = 7;
   }
   if (isSem2) {
-    for (let i = 0; i < annCompCount; i++) {
-      ws.getColumn(annCompStartCol + i).width = 6.5;
-    }
+    allAnnualCompSubjects.forEach((sub, i) => {
+      const col = ws.getColumn(annCompStartCol + i);
+      col.width = 6.5;
+      if (hiddenAnnualKeys.has(sub.key)) {
+        col.hidden = true;
+      }
+    });
     for (let i = 0; i < annResCount; i++) {
       ws.getColumn(annResStartCol + i).width = 8;
     }
@@ -1327,6 +1364,7 @@ function workbookToCsvBlob(workbook: ExcelTypes.Workbook): Blob {
       const cells: string[] = [];
       let hasContent = false;
       for (let c = 1; c <= maxCols; c++) {
+        if (ws.getColumn(c).hidden) continue;
         const text = extractCellCsvText(row.getCell(c));
         if (text !== '') hasContent = true;
         cells.push(escapeCsvField(text));
@@ -1365,6 +1403,8 @@ export async function generateLocalShareBlobs(params: {
   remarks: RemarksMap;
   semesterScoresByTerm?: SemesterScoresByTerm;
   domainGradesByTerm?: DomainGradesByTerm;
+  competencyRubricsByMonth?: CompetencyRubricsByMonth;
+  competencyRubricsByTerm?: CompetencyRubricsByTerm;
 }): Promise<{ xlsxBlob: Blob; csvBlob: Blob }> {
   const Workbook = getExcelWorkbookConstructor();
   const workbook = new Workbook();
@@ -1383,6 +1423,8 @@ export async function generateLocalShareBlobs(params: {
     remarks,
     semesterScoresByTerm,
     domainGradesByTerm,
+    competencyRubricsByMonth,
+    competencyRubricsByTerm,
   } = params;
 
   // Export only the single worksheet for the active tab
@@ -1395,8 +1437,18 @@ export async function generateLocalShareBlobs(params: {
       remarks
     );
   } else if (scope === 'monthly') {
-    appendMonthlyWorksheet(workbook, settings, students, monthlyScores, remarks);
+    const monPeriod = getMonthlyScoresMonthYear(settings);
+    const monKey = getMonthKey(monPeriod.year, monPeriod.month);
+    appendMonthlyWorksheet(
+      workbook,
+      settings,
+      students,
+      monthlyScores,
+      remarks,
+      competencyRubricsByMonth?.[monKey]
+    );
   } else {
+    const termKey = String(settings.semester);
     appendSemesterWorksheet(
       workbook,
       settings,
@@ -1406,7 +1458,9 @@ export async function generateLocalShareBlobs(params: {
       domainGrades,
       remarks,
       semesterScoresByTerm,
-      domainGradesByTerm
+      domainGradesByTerm,
+      competencyRubricsByTerm?.[termKey],
+      competencyRubricsByTerm?.['annual']
     );
   }
 
@@ -1429,6 +1483,8 @@ export async function generateLocalExcelBlob(params: {
   remarks: RemarksMap;
   semesterScoresByTerm?: SemesterScoresByTerm;
   domainGradesByTerm?: DomainGradesByTerm;
+  competencyRubricsByMonth?: CompetencyRubricsByMonth;
+  competencyRubricsByTerm?: CompetencyRubricsByTerm;
 }): Promise<Blob> {
   const { xlsxBlob } = await generateLocalShareBlobs(params);
   return xlsxBlob;
