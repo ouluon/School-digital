@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { User } from 'firebase/auth';
 import {
   CalendarDays,
+  Check,
   CheckCheck,
   FileText,
   Pencil,
@@ -42,6 +43,7 @@ import {
   getMonthCalendarDays,
   getYearOptions,
 } from '../utils/calculations';
+import { toKhmerDigits } from '../utils/khmerCalendar';
 
 const LEAVE_REASON_PRESETS = [
   'ធុរៈគ្រួសារ',
@@ -306,6 +308,11 @@ export const AttendanceTab: React.FC<AttendanceTabProps> = ({
     2,
     '0'
   )}-${String(activeMonth).padStart(2, '0')}-${activeYear}`;
+  const monthLabel =
+    KHMER_MONTHS.find((m) => m.value === activeMonth)?.label || '';
+  const activeKhmerDateHeader = `${activeWeekdayFull}_${toKhmerDigits(
+    String(activeDay).padStart(2, '0')
+  )} ${monthLabel} ${toKhmerDigits(activeYear)}`;
   const activeHoliday = useMemo(
     () => getHolidayByDate(holidays, activeYear, activeMonth, activeDay),
     [holidays, activeYear, activeMonth, activeDay]
@@ -330,8 +337,6 @@ export const AttendanceTab: React.FC<AttendanceTabProps> = ({
     );
   }, [students, searchQuery]);
 
-  const monthLabel =
-    KHMER_MONTHS.find((m) => m.value === activeMonth)?.label || '';
 
   return (
     <div className="w-full min-w-0 space-y-4">
@@ -417,8 +422,8 @@ export const AttendanceTab: React.FC<AttendanceTabProps> = ({
           {/* Horizontal Date Scroller */}
           <div className="w-full min-w-0 surface-card rounded-2xl p-3 space-y-2.5">
             <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                ជ្រើសរើសថ្ងៃក្នុងខែ{monthLabel} ({calendarDays.length} ថ្ងៃ)
+              <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100">
+                {activeKhmerDateHeader}
               </span>
               <div className="flex items-center gap-2 flex-wrap">
                 {activeDayInfo?.isSunday && (
@@ -604,50 +609,42 @@ export const AttendanceTab: React.FC<AttendanceTabProps> = ({
                 return (
                   <div
                     key={stu.id}
-                    className="px-3.5 py-3 space-y-2.5 hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
+                    className="px-2.5 sm:px-3.5 py-2.5 space-y-2 hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <span className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold font-mono-num flex items-center justify-center shrink-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                        <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] sm:text-xs font-bold font-mono-num flex items-center justify-center shrink-0">
                           {idx + 1}
                         </span>
-                        <div className="min-w-0">
-                          <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
                             {stu.name}
                           </div>
-                          <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 flex-wrap">
-                            <span>{stu.gender}</span>
-                            {stu.studentCode && (
-                              <>
-                                <span aria-hidden="true">·</span>
-                                <span className="font-mono-num">{stu.studentCode}</span>
-                              </>
-                            )}
-                            <span aria-hidden="true">·</span>
-                            <span className="font-mono-num">
-                              ច្ប {totals.excused} / អច្ប {totals.unexcused}
-                            </span>
+                          <div className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-mono-num truncate">
+                            ច្ប {totals.excused} / អច្ប {totals.unexcused}
                           </div>
                         </div>
                       </div>
 
-                      {/* 4-State Large Thumb Toggle */}
-                      <div className="grid grid-cols-4 gap-1 p-1 bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/70 dark:border-slate-700 rounded-xl sm:w-[270px] shrink-0">
+                      {/* 4-State Compact Single-Row Toggle */}
+                      <div className="grid grid-cols-4 gap-0.5 sm:gap-1 p-0.5 sm:p-1 bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/70 dark:border-slate-700 rounded-xl w-[148px] sm:w-[208px] shrink-0">
                         <button
                           type="button"
                           onClick={() => onChangeMark(stu.id, activeDay, '')}
-                          className={`min-h-[42px] rounded-lg text-xs font-semibold transition-all duration-150 active:scale-[0.97] whitespace-nowrap ${
+                          aria-label="មករៀន"
+                          title="មករៀន"
+                          className={`min-h-[38px] sm:min-h-[40px] rounded-lg text-xs font-semibold flex items-center justify-center transition-all duration-150 active:scale-[0.97] whitespace-nowrap ${
                             mark === ''
                               ? 'bg-gradient-to-b from-emerald-500 to-emerald-600 text-white shadow-[0_2px_8px_-2px_rgba(16,185,129,0.45),inset_0_1px_0_rgba(255,255,255,0.22)]'
                               : 'text-slate-600 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-100'
                           }`}
                         >
-                          មករៀន
+                          <Check className="w-4 h-4 stroke-[2.75]" aria-hidden="true" />
                         </button>
                         <button
                           type="button"
                           onClick={() => onChangeMark(stu.id, activeDay, 'ច្ប')}
-                          className={`min-h-[42px] rounded-lg text-xs font-semibold transition-all duration-150 active:scale-[0.97] whitespace-nowrap ${
+                          className={`min-h-[38px] sm:min-h-[40px] rounded-lg text-[11px] sm:text-xs font-semibold flex items-center justify-center transition-all duration-150 active:scale-[0.97] whitespace-nowrap ${
                             mark === 'ច្ប'
                               ? 'bg-gradient-to-b from-amber-400 to-amber-500 text-white shadow-[0_2px_8px_-2px_rgba(245,158,11,0.45),inset_0_1px_0_rgba(255,255,255,0.25)]'
                               : 'text-slate-600 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-100'
@@ -658,7 +655,7 @@ export const AttendanceTab: React.FC<AttendanceTabProps> = ({
                         <button
                           type="button"
                           onClick={() => onChangeMark(stu.id, activeDay, 'ឈ')}
-                          className={`min-h-[42px] rounded-lg text-xs font-semibold transition-all duration-150 active:scale-[0.97] whitespace-nowrap ${
+                          className={`min-h-[38px] sm:min-h-[40px] rounded-lg text-[11px] sm:text-xs font-semibold flex items-center justify-center transition-all duration-150 active:scale-[0.97] whitespace-nowrap ${
                             mark === 'ឈ'
                               ? 'bg-gradient-to-b from-sky-500 to-sky-600 text-white shadow-[0_2px_8px_-2px_rgba(2,132,199,0.45),inset_0_1px_0_rgba(255,255,255,0.25)]'
                               : 'text-slate-600 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-100'
@@ -669,7 +666,7 @@ export const AttendanceTab: React.FC<AttendanceTabProps> = ({
                         <button
                           type="button"
                           onClick={() => onChangeMark(stu.id, activeDay, 'អច្ប')}
-                          className={`min-h-[42px] rounded-lg text-xs font-semibold transition-all duration-150 active:scale-[0.97] whitespace-nowrap ${
+                          className={`min-h-[38px] sm:min-h-[40px] rounded-lg text-[11px] sm:text-xs font-semibold flex items-center justify-center transition-all duration-150 active:scale-[0.97] whitespace-nowrap ${
                             mark === 'អច្ប'
                               ? 'bg-gradient-to-b from-rose-500 to-rose-600 text-white shadow-[0_2px_8px_-2px_rgba(225,29,72,0.45),inset_0_1px_0_rgba(255,255,255,0.22)]'
                               : 'text-slate-600 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-100'
