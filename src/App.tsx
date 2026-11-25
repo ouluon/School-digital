@@ -153,7 +153,7 @@ const DEFAULT_SETTINGS: ClassSettings = {
   districtAdmin: '',
   educationOffice: '',
   schoolCluster: '',
-  className: 'ថ្នាក់ទី ៦ ក',
+  className: '',
   teacherName: '',
   academicYear: `${defaultAcademicStart}-${defaultAcademicStart + 1}`,
   month: now.getMonth() + 1,
@@ -178,7 +178,7 @@ function createFreshDraft(authedUser?: User | null): DraftState {
       ...DEFAULT_SETTINGS,
       teacherName: authedUser?.displayName || DEFAULT_SETTINGS.teacherName,
     },
-    students: SAMPLE_STUDENTS,
+    students: authedUser ? SAMPLE_STUDENTS : [],
     attendanceByMonth: {},
     attendanceReasonsByMonth: {},
     monthlyScoresByMonth: {},
@@ -282,9 +282,18 @@ function loadDraft(uid?: string | null, authedUser?: User | null): DraftState {
     const rawV2 = localStorage.getItem(getDraftStorageKey(uid));
     if (rawV2) {
       const parsed = JSON.parse(rawV2);
+      const parsedUpdatedAt =
+        typeof parsed.updatedAt === 'number' ? parsed.updatedAt : 0;
+      if (!uid && parsedUpdatedAt <= 0) {
+        return createSignedOutDraft();
+      }
       return {
         settings: normalizeLoadedSettings(parsed.settings),
-        students: Array.isArray(parsed.students) ? parsed.students : SAMPLE_STUDENTS,
+        students: Array.isArray(parsed.students)
+          ? parsed.students
+          : uid
+          ? SAMPLE_STUDENTS
+          : [],
         attendanceByMonth: parsed.attendanceByMonth || {},
         attendanceReasonsByMonth: parsed.attendanceReasonsByMonth || {},
         monthlyScoresByMonth: parsed.monthlyScoresByMonth || {},
@@ -294,7 +303,7 @@ function loadDraft(uid?: string | null, authedUser?: User | null): DraftState {
         domainGradesByTerm: parsed.domainGradesByTerm || {},
         remarks: parsed.remarks || {},
         activeSheet: parsed.activeSheet || null,
-        updatedAt: typeof parsed.updatedAt === 'number' ? parsed.updatedAt : 0,
+        updatedAt: parsedUpdatedAt,
         pendingSheetSync: Boolean(parsed.pendingSheetSync),
         hasLocalRecord: true,
       };
@@ -309,40 +318,17 @@ function loadDraft(uid?: string | null, authedUser?: User | null): DraftState {
         hasLocalRecord: false,
       };
     }
-
-    // Migrate seamlessly from v1 if present (guest mode only)
-    const rawV1 = localStorage.getItem(DRAFT_STORAGE_KEY_V1);
-    if (rawV1) {
-      const parsed = JSON.parse(rawV1);
-      const s: ClassSettings = { ...DEFAULT_SETTINGS, ...(parsed.settings || {}) };
-      const mKey = getMonthKey(s.year, s.month);
-      const tKey = String(s.semester);
-      return {
-        settings: s,
-        students: Array.isArray(parsed.students) ? parsed.students : SAMPLE_STUDENTS,
-        attendanceByMonth: parsed.attendance ? { [mKey]: parsed.attendance } : {},
-        attendanceReasonsByMonth: {},
-        monthlyScoresByMonth: parsed.monthlyScores ? { [mKey]: parsed.monthlyScores } : {},
-        competencyRubricsByMonth: {},
-        semesterScoresByTerm: parsed.semesterScores ? { [tKey]: parsed.semesterScores } : {},
-        competencyRubricsByTerm: {},
-        domainGradesByTerm: parsed.domainGrades ? { [tKey]: parsed.domainGrades } : {},
-        remarks: parsed.remarks || {},
-        activeSheet: parsed.activeSheet || null,
-        updatedAt: 0,
-        pendingSheetSync: false,
-        hasLocalRecord: true,
-      };
-    }
   } catch {
     // ignore storage errors
   }
-  return {
-    ...createFreshDraft(authedUser),
-    updatedAt: 0,
-    pendingSheetSync: false,
-    hasLocalRecord: false,
-  };
+  return uid
+    ? {
+        ...createFreshDraft(authedUser),
+        updatedAt: 0,
+        pendingSheetSync: false,
+        hasLocalRecord: false,
+      }
+    : createSignedOutDraft();
 }
 
 export default function App() {
@@ -1497,9 +1483,12 @@ export default function App() {
         : { month: monthlyMonth, year: monthlyYear };
     const monthLabel =
       KHMER_MONTHS.find((m) => m.value === activePeriod.month)?.label || '';
+    const classSuffix = settings.className.trim()
+      ? ` ${settings.className.trim()}`
+      : '';
     const title =
       customTitle ||
-      `បញ្ជីពិន្ទុ និងអវត្តមាន ${settings.className} - ${monthLabel} ${activePeriod.year}`;
+      `បញ្ជីពិន្ទុ និងអវត្តមាន${classSuffix} - ${monthLabel} ${activePeriod.year}`;
     const plan = buildSyncPlan(
       settings,
       attendanceByMonth,

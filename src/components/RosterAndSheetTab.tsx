@@ -141,7 +141,9 @@ export const RosterAndSheetTab: React.FC<RosterAndSheetTabProps> = ({
   const monMonthLabel =
     KHMER_MONTHS.find((m) => m.value === monMonth)?.label || '';
   const [newSheetTitle, setNewSheetTitle] = useState(
-    `បញ្ជីពិន្ទុ និងអវត្តមាន ${settings.className} - ${monMonthLabel} ${monYear}`
+    `បញ្ជីពិន្ទុ និងអវត្តមាន${
+      settings.className.trim() ? ` ${settings.className.trim()}` : ''
+    } - ${monMonthLabel} ${monYear}`
   );
   const [sheetUrlInput, setSheetUrlInput] = useState('');
   const excelInputRef = useRef<HTMLInputElement | null>(null);
@@ -771,10 +773,11 @@ export const RosterAndSheetTab: React.FC<RosterAndSheetTabProps> = ({
               <input
                 type="text"
                 value={settings.className}
+                placeholder="ឧ. ថ្នាក់ទី ៦ ក"
                 onChange={(e) =>
                   onUpdateSettings({ ...settings, maxScore: 10, className: e.target.value })
                 }
-                className="w-full min-h-[42px] px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                className="w-full min-h-[42px] px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
               />
             </label>
             <label className="space-y-1">
