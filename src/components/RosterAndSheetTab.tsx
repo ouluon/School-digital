@@ -936,8 +936,13 @@ export const RosterAndSheetTab: React.FC<RosterAndSheetTabProps> = ({
 
         {/* Roster List */}
         {students.length === 0 ? (
-          <div className="py-10 text-center text-sm text-slate-500 dark:text-slate-400">
-            មិនទាន់មានសិស្សនៅក្នុងបញ្ជីទេ។ អ្នកអាចចុច «បន្ថែមសិស្សថ្មី» ឬ «នាំចូលគំរូ Excel» ខាងលើ។
+          <div className="py-12 px-4 text-center space-y-1.5">
+            <div className="text-base font-bold text-slate-700 dark:text-slate-200">
+              គ្មានទិន្នន័យសិស្ស
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              សូមចូលគណនី ឬចុច «បន្ថែមសិស្សថ្មី» / «នាំចូលគំរូ Excel» ខាងលើ។
+            </p>
           </div>
         ) : (
           <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-800 max-h-[520px] overflow-y-auto">

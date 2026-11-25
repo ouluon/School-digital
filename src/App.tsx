@@ -191,6 +191,25 @@ function createFreshDraft(authedUser?: User | null): DraftState {
   };
 }
 
+function createSignedOutDraft(): DraftState {
+  return {
+    settings: { ...DEFAULT_SETTINGS },
+    students: [],
+    attendanceByMonth: {},
+    attendanceReasonsByMonth: {},
+    monthlyScoresByMonth: {},
+    competencyRubricsByMonth: {},
+    semesterScoresByTerm: {},
+    competencyRubricsByTerm: {},
+    domainGradesByTerm: {},
+    remarks: {},
+    activeSheet: null,
+    updatedAt: 0,
+    pendingSheetSync: false,
+    hasLocalRecord: false,
+  };
+}
+
 function normalizeLoadedSettings(rawSettings: Partial<ClassSettings> | undefined): ClassSettings {
   const s = rawSettings || {};
   const baseMonth = typeof s.month === 'number' ? s.month : DEFAULT_SETTINGS.month;
@@ -1213,7 +1232,14 @@ export default function App() {
           setDriveFiles([]);
           setPendingSync(null);
           setHasUnsavedChanges(false);
-          applyWorkspaceDraft(loadDraft(null), null);
+          const signedOutDraft = createSignedOutDraft();
+          try {
+            localStorage.removeItem(DRAFT_STORAGE_KEY_V1);
+            localStorage.setItem(getDraftStorageKey(null), JSON.stringify(signedOutDraft));
+          } catch {
+            // ignore storage errors
+          }
+          applyWorkspaceDraft(signedOutDraft, null);
         }
       },
       (authErr) => {
@@ -1372,7 +1398,14 @@ export default function App() {
     setHasUnsavedChanges(false);
     setAutoSaveState('idle');
     dismissRecordToast();
-    applyWorkspaceDraft(loadDraft(null), null);
+    const signedOutDraft = createSignedOutDraft();
+    try {
+      localStorage.removeItem(DRAFT_STORAGE_KEY_V1);
+      localStorage.setItem(getDraftStorageKey(null), JSON.stringify(signedOutDraft));
+    } catch {
+      // ignore storage errors
+    }
+    applyWorkspaceDraft(signedOutDraft, null);
     setBannerMsg({
       type: 'success',
       text: 'បានចាកចេញពីគណនីរួចរាល់។',

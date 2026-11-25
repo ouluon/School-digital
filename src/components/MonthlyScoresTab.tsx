@@ -619,8 +619,13 @@ export const MonthlyScoresTab: React.FC<MonthlyScoresTabProps> = ({
 
           {/* Fast Score List */}
           {students.length === 0 ? (
-            <div className="surface-card rounded-2xl p-8 text-center text-sm text-slate-500 dark:text-slate-400">
-              មិនទាន់មានបញ្ជីឈ្មោះសិស្សទេ។ សូមចូលទៅផ្ទាំង «សិស្ស & Sheet» ដើម្បីបន្ថែមសិស្ស។
+            <div className="surface-card rounded-2xl p-8 text-center space-y-1.5">
+              <div className="text-base font-bold text-slate-700 dark:text-slate-200">
+                គ្មានទិន្នន័យសិស្ស
+              </div>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                សូមចូលគណនី ឬចូលទៅផ្ទាំង «គ្រូ/សិស្ស» ដើម្បីបន្ថែមសិស្ស។
+              </p>
             </div>
           ) : (
             <div className="surface-card rounded-2xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
@@ -797,46 +802,57 @@ export const MonthlyScoresTab: React.FC<MonthlyScoresTabProps> = ({
             />
           </div>
 
-          <div className="surface-card rounded-2xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
-            {filteredStudents.map((stu) => {
-              const idx = students.findIndex((s) => s.id === stu.id);
-              const res = results[stu.id];
-              return (
-                <button
-                  key={stu.id}
-                  type="button"
-                  onClick={() => setActiveStudent(stu)}
-                  className="w-full min-h-[64px] px-4 py-3 flex items-center justify-between gap-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold font-mono-num flex items-center justify-center shrink-0">
-                      {idx + 1}
-                    </span>
-                    <div className="min-w-0">
-                      <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
-                        {stu.name}
-                      </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 font-mono-num">
-                        ខែ{monthLabel} · បានបញ្ចូល {res?.enteredCount ?? 0}/{visibleAcademicCount} · សរុប{' '}
-                        {res?.total.toFixed(2) ?? '0.00'}
+          {students.length === 0 ? (
+            <div className="surface-card rounded-2xl p-8 text-center space-y-1.5">
+              <div className="text-base font-bold text-slate-700 dark:text-slate-200">
+                គ្មានទិន្នន័យសិស្ស
+              </div>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                សូមចូលគណនី ឬចូលទៅផ្ទាំង «គ្រូ/សិស្ស» ដើម្បីបន្ថែមសិស្ស។
+              </p>
+            </div>
+          ) : (
+            <div className="surface-card rounded-2xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
+              {filteredStudents.map((stu) => {
+                const idx = students.findIndex((s) => s.id === stu.id);
+                const res = results[stu.id];
+                return (
+                  <button
+                    key={stu.id}
+                    type="button"
+                    onClick={() => setActiveStudent(stu)}
+                    className="w-full min-h-[64px] px-4 py-3 flex items-center justify-between gap-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold font-mono-num flex items-center justify-center shrink-0">
+                        {idx + 1}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
+                          {stu.name}
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 font-mono-num">
+                          ខែ{monthLabel} · បានបញ្ចូល {res?.enteredCount ?? 0}/{visibleAcademicCount} · សរុប{' '}
+                          {res?.total.toFixed(2) ?? '0.00'}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <div className="text-right">
-                      <div className="text-sm font-bold font-mono-num text-red-600 dark:text-red-400">
-                        {res?.average.toFixed(2) ?? '0.00'}
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="text-right">
+                        <div className="text-sm font-bold font-mono-num text-red-600 dark:text-red-400">
+                          {res?.average.toFixed(2) ?? '0.00'}
+                        </div>
+                        <div className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 font-mono-num">
+                          #{res?.rank ?? 1} · {res?.grade ?? 'F'}
+                        </div>
                       </div>
-                      <div className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 font-mono-num">
-                        #{res?.rank ?? 1} · {res?.grade ?? 'F'}
-                      </div>
+                      <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                     </div>
-                    <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </>
       )}
 

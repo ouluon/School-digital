@@ -591,8 +591,13 @@ export const AttendanceTab: React.FC<AttendanceTabProps> = ({
 
           {/* Student List for Thumb Tapping */}
           {students.length === 0 ? (
-            <div className="surface-card rounded-2xl p-8 text-center text-sm text-slate-500 dark:text-slate-400">
-              មិនទាន់មានបញ្ជីឈ្មោះសិស្សទេ។ សូមចូលទៅផ្ទាំង «សិស្ស & Sheet» ដើម្បីបន្ថែមសិស្ស ឬទាញពីគំរូ។
+            <div className="surface-card rounded-2xl p-8 text-center space-y-1.5">
+              <div className="text-base font-bold text-slate-700 dark:text-slate-200">
+                គ្មានទិន្នន័យសិស្ស
+              </div>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                សូមចូលគណនី ឬចូលទៅផ្ទាំង «គ្រូ/សិស្ស» ដើម្បីបន្ថែមសិស្ស។
+              </p>
             </div>
           ) : (
             <div className="surface-card rounded-2xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
