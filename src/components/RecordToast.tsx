@@ -1,7 +1,7 @@
 import React from 'react';
 import { CheckCircle2, Loader2, X } from 'lucide-react';
 
-export type RecordToastCategory = 'attendance' | 'scores';
+export type RecordToastCategory = 'attendance' | 'scores' | 'auth';
 export type RecordToastPhase =
   | 'recording'
   | 'saved_local'
@@ -12,6 +12,7 @@ export interface RecordToastState {
   id: number;
   category: RecordToastCategory;
   phase: RecordToastPhase;
+  customTitle?: string;
   detail?: string;
 }
 
@@ -32,7 +33,9 @@ export const RecordToast: React.FC<RecordToastProps> = ({
 
   const isRecording = toast.phase === 'recording';
 
-  const title = isRecording
+  const title = toast.customTitle
+    ? toast.customTitle
+    : isRecording
     ? toast.category === 'attendance'
       ? 'កំពុងកត់ត្រាអវត្តមាន...'
       : 'កំពុងកត់ត្រាពិន្ទុ...'

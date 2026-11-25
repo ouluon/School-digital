@@ -556,6 +556,19 @@ export default function App() {
     }
   };
 
+  const showAuthToast = (customTitle: string, detail?: string) => {
+    clearToastTimers();
+    toastPausedRef.current = false;
+    setRecordToast({
+      id: toastIdSeqRef.current++,
+      category: 'auth',
+      phase: 'saved_cloud',
+      customTitle,
+      detail,
+    });
+    scheduleToastDismiss(3000);
+  };
+
   const handlePauseToastDismiss = () => {
     toastPausedRef.current = true;
     if (toastDismissTimerRef.current) {
@@ -941,12 +954,12 @@ export default function App() {
 
         if (!token) {
           if (authedUser.emailVerified && (showSuccessBanner || isAccountChange)) {
-            setBannerMsg({
-              type: 'success',
-              text: cloudGradebook
-                ? `បានចូលគណនី ${accountLabel} និងផ្ទុកទិន្នន័យដែលបានរក្សាទុកដោយស្វ័យប្រវត្តិ។`
-                : `បានចូលគណនី ${accountLabel} ដោយជោគជ័យ (រក្សាទុកលើ Cloud ស្វ័យប្រវត្តិ)។`,
-            });
+            showAuthToast(
+              `បានចូលគណនី ${accountLabel} ដោយជោគជ័យ`,
+              cloudGradebook
+                ? 'បានផ្ទុកទិន្នន័យដែលបានរក្សាទុកដោយស្វ័យប្រវត្តិ។'
+                : 'រក្សាទុកទិន្នន័យលើ Cloud ដោយស្វ័យប្រវត្តិ។'
+            );
           }
           return;
         }
@@ -981,10 +994,10 @@ export default function App() {
             setHasUnsavedChanges(false);
             setAutoSaveState('synced_sheet');
             if (showSuccessBanner || isAccountChange) {
-              setBannerMsg({
-                type: 'success',
-                text: `បានភ្ជាប់គណនី ${accountLabel} និងធ្វើបច្ចុប្បន្នភាពទិន្នន័យទៅ "${synced.title}" ដោយស្វ័យប្រវត្តិ`,
-              });
+              showAuthToast(
+                `បានភ្ជាប់គណនី ${accountLabel}`,
+                `បានធ្វើបច្ចុប្បន្នភាពទិន្នន័យទៅ "${synced.title}" ដោយស្វ័យប្រវត្តិ។`
+              );
             }
             return;
           } catch (syncErr) {
@@ -1128,10 +1141,10 @@ export default function App() {
             setAutoSaveState('synced_sheet');
 
             if (showSuccessBanner || isAccountChange) {
-              setBannerMsg({
-                type: 'success',
-                text: `បានចូលគណនី ${accountLabel} និងផ្ទុកទិន្នន័យពី "${loadedResult.info.title}" (${loadedResult.students.length} សិស្ស) ដោយស្វ័យប្រវត្តិ`,
-              });
+              showAuthToast(
+                `បានចូលគណនី ${accountLabel}`,
+                `បានផ្ទុកទិន្នន័យពី "${loadedResult.info.title}" (${loadedResult.students.length} សិស្ស) ដោយស្វ័យប្រវត្តិ។`
+              );
             }
             return;
           } else if (isAccountChange) {
@@ -1140,15 +1153,19 @@ export default function App() {
         }
 
         if (showSuccessBanner || isAccountChange) {
-          setBannerMsg({
-            type: 'success',
-            text:
-              cloudGradebook
-                ? `បានចូលគណនី ${accountLabel} និងផ្ទុកទិន្នន័យដែលបានរក្សាទុកដោយស្វ័យប្រវត្តិ។`
-                : files.length === 0 && isAccountChange
-                ? `បានចូលគណនី ${accountLabel} និងផ្ទុកទិន្នន័យគណនីថ្មីដោយស្វ័យប្រវត្តិ។`
-                : `បានភ្ជាប់គណនី ${accountLabel} ដោយជោគជ័យ`,
-          });
+          if (cloudGradebook) {
+            showAuthToast(
+              `បានចូលគណនី ${accountLabel}`,
+              'បានផ្ទុកទិន្នន័យដែលបានរក្សាទុកដោយស្វ័យប្រវត្តិ។'
+            );
+          } else if (files.length === 0 && isAccountChange) {
+            showAuthToast(
+              `បានចូលគណនី ${accountLabel}`,
+              'បានផ្ទុកទិន្នន័យគណនីថ្មីដោយស្វ័យប្រវត្តិ។'
+            );
+          } else {
+            showAuthToast(`បានភ្ជាប់គណនី ${accountLabel} ដោយជោគជ័យ`);
+          }
         }
       } catch (err) {
         if (err instanceof GoogleApiError && (err.status === 401 || err.status === 403)) {
@@ -2473,7 +2490,7 @@ export default function App() {
               aria-hidden="true"
               className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover ring-1 ring-slate-200/90 dark:ring-slate-700 shadow-xs shrink-0"
             />
-            <span className="truncate">កម្មវិធីបញ្ចូលពិន្ទុនិងវត្តមាន</span>
+            <span className="truncate">School Digital</span>
           </button>
 
           {/* Zone 2: Desktop Navigation Links */}
@@ -3083,7 +3100,7 @@ export default function App() {
             <span className="font-mono-num font-semibold text-slate-800 dark:text-slate-200">© 2026</span>{' '}
             <span className="font-bold text-slate-900 dark:text-slate-100">OU Luon</span>
             <span className="mx-1.5 text-slate-300 dark:text-slate-600" aria-hidden="true">·</span>
-            <span>កម្មវិធីបញ្ចូលពិន្ទុនិងវត្តមាន</span>
+            <span>School Digital</span>
           </div>
 
           <div className="flex items-center gap-2">
