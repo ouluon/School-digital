@@ -38,10 +38,7 @@ import {
   computeMonthlyResults,
   computeSemesterResults,
   computeStudentAttendanceSummary,
-  getAcademicYearOptions,
-  getCalendarYearForAcademicMonth,
   getDaysInMonth,
-  parseAcademicYear,
 } from '../utils/calculations';
 import {
   generateStudentRosterTemplateExcelBlob,
@@ -86,7 +83,6 @@ interface RosterAndSheetTabProps {
   onRefreshDriveFiles: () => void;
   onRequestCreateSheet: (title: string) => void;
   onLoadSheetById: (idOrUrl: string) => void;
-  onUpdateSettings: (next: ClassSettings) => void;
   onAddStudent: (studentData: Omit<Student, 'id'>, remark: string) => void;
   onUpdateStudent: (
     studentId: string,
@@ -127,7 +123,6 @@ export const RosterAndSheetTab: React.FC<RosterAndSheetTabProps> = ({
   onRefreshDriveFiles,
   onRequestCreateSheet,
   onLoadSheetById,
-  onUpdateSettings,
   onAddStudent,
   onUpdateStudent,
   onDeleteStudent,
@@ -758,132 +753,6 @@ export const RosterAndSheetTab: React.FC<RosterAndSheetTabProps> = ({
               </div>
             </div>
           )}
-        </section>
-
-        {/* School & Class Settings */}
-        <section className="surface-card rounded-2xl p-4 space-y-3">
-          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
-            ព័ត៌មានសាលារៀន/ថ្នាក់រៀន
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <label className="space-y-1">
-              <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                ថ្នាក់ទី
-              </span>
-              <input
-                type="text"
-                value={settings.className}
-                placeholder="ឧ. ថ្នាក់ទី ៦ ក"
-                onChange={(e) =>
-                  onUpdateSettings({ ...settings, maxScore: 10, className: e.target.value })
-                }
-                className="w-full min-h-[42px] px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              />
-            </label>
-            <label className="space-y-1">
-              <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                ឆ្នាំសិក្សា
-              </span>
-              <select
-                aria-label="ឆ្នាំសិក្សា"
-                value={settings.academicYear}
-                onChange={(e) => {
-                  const nextAcademicYear = e.target.value;
-                  const mappedYear = getCalendarYearForAcademicMonth(
-                    nextAcademicYear,
-                    monMonth,
-                    parseAcademicYear(nextAcademicYear, settings.year).startYear
-                  );
-                  onUpdateSettings({
-                    ...settings,
-                    maxScore: 10,
-                    academicYear: nextAcademicYear,
-                    year: mappedYear,
-                    monthlyYear: mappedYear,
-                  });
-                }}
-                className="w-full min-h-[42px] px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-semibold font-mono-num text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              >
-                {getAcademicYearOptions(settings.academicYear, settings.year).map((ay) => (
-                  <option key={ay} value={ay}>
-                    {ay}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="space-y-1 sm:col-span-2">
-              <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                រដ្ឋបាលស្រុក / ក្រុង / ខណ្ឌ
-              </span>
-              <input
-                type="text"
-                value={settings.districtAdmin || ''}
-                placeholder="ឧ. រដ្ឋបាលស្រុកសំឡូត"
-                onChange={(e) =>
-                  onUpdateSettings({
-                    ...settings,
-                    maxScore: 10,
-                    districtAdmin: e.target.value,
-                  })
-                }
-                className="w-full min-h-[42px] px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              />
-            </label>
-            <label className="space-y-1 sm:col-span-2">
-              <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                ការិយាល័យអប់រំ យុវជន និងកីឡា
-              </span>
-              <input
-                type="text"
-                value={settings.educationOffice || ''}
-                placeholder="ឧ. ការិយាល័យអប់រំ យុវជន និងកីឡាស្រុកសំឡូត"
-                onChange={(e) =>
-                  onUpdateSettings({
-                    ...settings,
-                    maxScore: 10,
-                    educationOffice: e.target.value,
-                  })
-                }
-                className="w-full min-h-[42px] px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              />
-            </label>
-            <label className="space-y-1 sm:col-span-2">
-              <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                កម្រងសាលារៀន
-              </span>
-              <input
-                type="text"
-                value={settings.schoolCluster || ''}
-                placeholder="ឧ. កម្រងសាលារៀន សុវណ្ណគិរី"
-                onChange={(e) =>
-                  onUpdateSettings({
-                    ...settings,
-                    maxScore: 10,
-                    schoolCluster: e.target.value,
-                  })
-                }
-                className="w-full min-h-[42px] px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              />
-            </label>
-            <label className="space-y-1 sm:col-span-2">
-              <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                សាលារៀន
-              </span>
-              <input
-                type="text"
-                value={settings.schoolName || ''}
-                placeholder="ឧ. សាលាបឋមសិក្សា..."
-                onChange={(e) =>
-                  onUpdateSettings({
-                    ...settings,
-                    maxScore: 10,
-                    schoolName: e.target.value,
-                  })
-                }
-                className="w-full min-h-[42px] px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              />
-            </label>
-          </div>
         </section>
       </div>
 

@@ -107,6 +107,7 @@ import { SemesterResultsTab } from './components/SemesterResultsTab';
 import { RosterAndSheetTab } from './components/RosterAndSheetTab';
 import { AuthModal, AuthModalMode } from './components/AuthModal';
 import { AccountProfileModal } from './components/AccountProfileModal';
+import { SchoolClassInfoModal } from './components/SchoolClassInfoModal';
 import { UserProfileMenu } from './components/UserProfileMenu';
 import { ConfirmSyncModal, PendingSyncSummary } from './components/ConfirmSyncModal';
 import { ShareExcelModal } from './components/ShareExcelModal';
@@ -368,6 +369,7 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isSchoolInfoModalOpen, setIsSchoolInfoModalOpen] = useState(false);
   const [authRefreshTick, setAuthRefreshTick] = useState(0);
   const [hasToken, setHasToken] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -2704,6 +2706,7 @@ export default function App() {
                   hasToken={hasToken}
                   autoSaveState={autoSaveState}
                   onEditProfile={() => setIsProfileModalOpen(true)}
+                  onOpenSchoolInfo={() => setIsSchoolInfoModalOpen(true)}
                   onSignOut={handleSignOut}
                   onRefreshVerification={handleRefreshVerification}
                   onResendVerification={handleResendVerification}
@@ -3123,10 +3126,6 @@ export default function App() {
             onRefreshDriveFiles={() => refreshDriveFiles()}
             onRequestCreateSheet={(title) => openCreateSheetConfirm(title)}
             onLoadSheetById={handleLoadSheetById}
-            onUpdateSettings={(next) => {
-              setSettings(next);
-              markDataEdited(true);
-            }}
             onAddStudent={handleAddStudent}
             onUpdateStudent={handleUpdateStudent}
             onDeleteStudent={handleDeleteStudent}
@@ -3353,6 +3352,21 @@ export default function App() {
         defaultTeacherName={settings.teacherName}
         onClose={() => setIsProfileModalOpen(false)}
         onSave={handleSaveUserProfile}
+      />
+
+      {/* School & Class Info Modal */}
+      <SchoolClassInfoModal
+        open={isSchoolInfoModalOpen}
+        settings={settings}
+        onClose={() => setIsSchoolInfoModalOpen(false)}
+        onSave={(next) => {
+          setSettings(next);
+          markDataEdited(true);
+          setBannerMsg({
+            type: 'success',
+            text: 'បានរក្សាទុកព័ត៌មានសាលារៀន និងថ្នាក់រៀនរួចរាល់។',
+          });
+        }}
       />
 
       {/* Non-blocking Recording / Auto-Save Toast Notification */}

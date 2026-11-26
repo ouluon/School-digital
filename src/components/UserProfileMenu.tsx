@@ -8,6 +8,7 @@ import {
   Loader2,
   LogOut,
   Mail,
+  School,
   UserCog,
 } from 'lucide-react';
 import { useUserProfileContext } from '../contexts/UserProfileContext';
@@ -74,6 +75,7 @@ interface UserProfileMenuProps {
   hasToken: boolean;
   autoSaveState?: 'idle' | 'saving' | 'saved_local' | 'saved_cloud' | 'synced_sheet';
   onEditProfile?: () => void;
+  onOpenSchoolInfo?: () => void;
   onSignOut: () => void;
   onRefreshVerification?: () => void;
   onResendVerification?: () => void;
@@ -84,6 +86,7 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
   hasToken,
   autoSaveState = 'idle',
   onEditProfile,
+  onOpenSchoolInfo,
   onSignOut,
   onRefreshVerification,
   onResendVerification,
@@ -257,6 +260,21 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
               >
                 <UserCog className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
                 <span>កែប្រែព័ត៌មានផ្ទាល់ខ្លួន និងរូបថត</span>
+              </button>
+            )}
+
+            {onOpenSchoolInfo && (
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false);
+                  onOpenSchoolInfo();
+                }}
+                className="w-full min-h-[42px] px-3 rounded-xl text-xs font-semibold text-indigo-800 dark:text-indigo-200 bg-indigo-50/70 dark:bg-indigo-950/40 hover:bg-indigo-100/80 dark:hover:bg-indigo-900/60 flex items-center gap-2.5 transition-colors text-left cursor-pointer"
+              >
+                <School className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                <span>ព័ត៌មានសាលារៀន/ថ្នាក់រៀន</span>
               </button>
             )}
 
