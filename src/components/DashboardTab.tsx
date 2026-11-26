@@ -128,12 +128,66 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
     });
   };
 
-  // Donut progress metrics
-  const ringRadius = 56;
-  const ringCircumference = 2 * Math.PI * ringRadius;
-  const clampedRate = Math.min(100, Math.max(0, attendanceRate));
-  const strokeDashoffset =
-    ringCircumference * (1 - clampedRate / 100);
+  const {
+    yesterdayRate,
+    trendRates,
+  } = useMemo(() => {
+    const rates: number[] = [];
+    for (let offset = 6; offset >= 0; offset--) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - offset);
+      const mk = getMonthKey(d.getFullYear(), d.getMonth() + 1);
+      const map = attendanceByMonth[mk] || {};
+      const summary = computeDailyAttendanceSummary(students, map, d.getDate());
+      const r = students.length > 0 ? (summary.present / students.length) * 100 : 0;
+      rates.push(r);
+    }
+    return {
+      yesterdayRate: rates[rates.length - 2] ?? 0,
+      trendRates: rates,
+    };
+  }, [attendanceByMonth, now, students]);
+
+  const attendanceDelta = attendanceRate - yesterdayRate;
+  const formattedDelta = Number.isInteger(Number(Math.abs(attendanceDelta).toFixed(1)))
+    ? Math.abs(attendanceDelta).toFixed(0)
+    : Math.abs(attendanceDelta).toFixed(1);
+
+  const deltaArrow =
+    students.length === 0 || Math.abs(attendanceDelta) < 0.05
+      ? ''
+      : attendanceDelta > 0
+      ? '↑ '
+      : '↓ ';
+
+  const sparklinePoints = useMemo(() => {
+    const width = 320;
+    const height = 64;
+    const padX = 6;
+    const padY = 10;
+    const usableW = width - padX * 2;
+    const usableH = height - padY * 2;
+    const minR = Math.min(...trendRates);
+    const maxR = Math.max(...trendRates);
+    const span = maxR - minR;
+
+    return trendRates
+      .map((rate, idx) => {
+        const x =
+          trendRates.length > 1
+            ? padX + (idx / (trendRates.length - 1)) * usableW
+            : width / 2;
+        let y: number;
+        if (span < 0.01) {
+          y = rate > 0 ? padY + usableH * 0.32 : padY + usableH * 0.72;
+        } else {
+          const normalized = (rate - minR) / span; // 0..1
+          y = padY + (1 - normalized) * usableH;
+        }
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      })
+      .join(' ');
+  }, [trendRates]);
 
   const quickActions: Array<{
     key: NavTabTarget;
@@ -336,45 +390,48 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
           </span>
         </div>
 
-        {/* Center Donut Ring */}
-        <div className="my-5 flex items-center justify-center">
-          <div className="relative w-36 h-36 flex items-center justify-center">
+        {/* Blue Attendance Trend Sparkline Card */}
+        <div className="my-4 rounded-2xl bg-gradient-to-br from-[#0b40aa] via-[#1353cf] to-[#1f68eb] dark:from-[#0b348a] dark:via-[#1146b3] dark:to-[#1957cf] p-5 sm:p-6 text-white shadow-md shadow-blue-900/15">
+          <div className="font-mono-num text-4xl sm:text-5xl font-extrabold tracking-tight leading-none">
+            {attendanceRate.toFixed(1)}%
+          </div>
+          <p className="mt-2 text-sm font-medium text-blue-100/95">
+            <span className="font-mono-num font-semibold">
+              {todaySummary.present}
+            </span>{' '}
+            នៃ{' '}
+            <span className="font-mono-num font-semibold">
+              {students.length}
+            </span>{' '}
+            នាក់ មករៀន
+          </p>
+
+          <div className="my-5">
             <svg
-              viewBox="0 0 140 140"
-              className="w-full h-full -rotate-90"
+              viewBox="0 0 320 64"
+              preserveAspectRatio="none"
+              className="w-full h-14 sm:h-16 overflow-visible"
               role="img"
-              aria-label={`អត្រាវត្តមាន ${attendanceRate.toFixed(1)}%`}
+              aria-label={`និន្នាការអត្រាវត្តមាន ៧ ថ្ងៃចុងក្រោយ ${attendanceRate.toFixed(1)}%`}
             >
-              <circle
-                cx="70"
-                cy="70"
-                r={ringRadius}
+              <polyline
                 fill="none"
-                strokeWidth="12"
-                className="stroke-slate-200 dark:stroke-slate-800"
+                stroke="rgba(255, 255, 255, 0.96)"
+                strokeWidth="3.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                vectorEffect="non-scaling-stroke"
+                points={sparklinePoints}
               />
-              {clampedRate > 0 && (
-                <circle
-                  cx="70"
-                  cy="70"
-                  r={ringRadius}
-                  fill="none"
-                  strokeWidth="12"
-                  strokeLinecap="round"
-                  strokeDasharray={ringCircumference}
-                  strokeDashoffset={strokeDashoffset}
-                  className="stroke-emerald-500 dark:stroke-emerald-400 transition-all duration-500 ease-out"
-                />
-              )}
             </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <span className="font-mono-num text-2xl font-bold text-slate-900 dark:text-slate-100 leading-none">
-                {attendanceRate.toFixed(1)}%
-              </span>
-              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-1.5">
-                អត្រាវត្តមាន
-              </span>
-            </div>
+          </div>
+
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-xs px-3 py-1 text-xs font-medium text-white">
+            <span className="font-mono-num font-semibold">
+              {deltaArrow}
+              {formattedDelta}%
+            </span>
+            <span>ធៀបម្សិលមិញ</span>
           </div>
         </div>
 
