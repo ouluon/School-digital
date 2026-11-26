@@ -21,6 +21,7 @@ import { UserProfileData } from '../services/userProfile';
 import { computeDailyAttendanceSummary } from '../utils/calculations';
 import { toKhmerDigits } from '../utils/khmerCalendar';
 import { UserAvatar } from './UserProfileMenu';
+import angkorWatBanner from '../assets/images/angkor_wat_banner_1795683560244.jpg';
 
 type NavTabTarget = 'attendance' | 'monthly' | 'semester' | 'roster';
 
@@ -180,27 +181,20 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
       {/* 1. Top Hero Card: Teacher Greeting Banner + School Metadata */}
       <section className="surface-card rounded-2xl overflow-hidden">
         {/* Deep Blue Angkor Banner */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-[#13397d] via-[#1a499e] to-[#235bc2] dark:from-[#0e2757] dark:via-[#15397a] dark:to-[#1d4ba1] px-4 sm:px-6 py-4 sm:py-5">
-          {/* Subtle Angkor Wat Silhouette Backdrop */}
-          <svg
+        <div className="relative overflow-hidden bg-[#0e2757] px-4 sm:px-6 py-5 sm:py-6">
+          {/* Realistic Angkor Wat Background Image */}
+          <img
+            src={angkorWatBanner}
+            alt=""
             aria-hidden="true"
-            viewBox="0 0 420 120"
-            fill="none"
-            className="pointer-events-none absolute right-0 bottom-0 h-full w-auto max-w-[75%] text-white/15"
-            preserveAspectRatio="xMaxYMax slice"
-          >
-            <circle cx="315" cy="48" r="24" fill="currentColor" opacity="0.28" />
-            <circle cx="315" cy="48" r="38" stroke="currentColor" strokeOpacity="0.16" strokeWidth="1.5" strokeDasharray="3 4" />
-            <path
-              d="M0 120V102H48V90H88V78H126V60L136 42L146 60V78H182V50L192 22L202 50V78H228V38L240 12L252 38V78H278V50L288 22L298 50V78H334V60L344 42L354 60V78H392V92H420V120H0Z"
-              fill="currentColor"
-            />
-            <path
-              d="M150 120V92H172V120M228 120V86H252V120M306 120V92H328V120"
-              fill="currentColor"
-              opacity="0.45"
-            />
-          </svg>
+            referrerPolicy="no-referrer"
+            className="pointer-events-none absolute inset-0 w-full h-full object-cover object-[78%_38%] sm:object-[72%_36%] select-none"
+          />
+          {/* Left-to-right gradient scrim for crisp white text readability */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#0c2352]/92 via-[#123678]/65 to-[#1a499e]/20"
+          />
 
           <div className="relative z-10 flex items-center gap-3.5 sm:gap-4">
             <button
@@ -226,7 +220,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
               <p className="text-xs sm:text-sm font-medium text-blue-100/95">
                 {greeting}
               </p>
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight truncate mt-0.5">
+              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight truncate mt-0.5 drop-shadow-xs">
                 {teacherDisplayName}
               </h2>
             </div>
