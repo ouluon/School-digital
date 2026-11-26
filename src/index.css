@@ -3,24 +3,24 @@
 
 @theme {
   --font-sans:
-    "Plus Jakarta Sans",
-    "Noto Sans Khmer",
-    "Kantumruy Pro",
+    "Teachers",
+    "Hanuman",
     "Khmer OS Siemreap",
-    "Khmer OS Battambang",
-    "Leelawadee UI",
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
     sans-serif;
   --font-display:
-    "Plus Jakarta Sans",
-    "Kantumruy Pro",
-    "Noto Sans Khmer",
+    "Teachers",
+    "Hanuman",
     "Khmer OS Siemreap",
     system-ui,
     sans-serif;
-  --font-mono: "JetBrains Mono", "Plus Jakarta Sans", monospace;
+  --font-mono:
+    "Teachers",
+    "Hanuman",
+    "Khmer OS Siemreap",
+    monospace;
 }
 
 @layer base {
@@ -50,6 +50,7 @@
   h3,
   h4 {
     font-family: var(--font-display);
+    font-weight: 700;
     line-height: 1.45;
   }
 
