@@ -2683,12 +2683,7 @@ export default function App() {
                   user={user}
                   hasToken={hasToken}
                   autoSaveState={autoSaveState}
-                  themeMode={themeMode}
-                  onChangeTheme={handleChangeTheme}
                   onEditProfile={() => setIsProfileModalOpen(true)}
-                  onReauth={() => void handleSignIn(false)}
-                  onSwitchAccount={() => setAuthModal({ open: true, mode: 'signin' })}
-                  onOpenSheetTab={() => setActiveTab('roster')}
                   onSignOut={handleSignOut}
                   onRefreshVerification={handleRefreshVerification}
                   onResendVerification={handleResendVerification}

@@ -1,22 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { User } from 'firebase/auth';
 import {
-  ArrowLeftRight,
   Camera,
   Check,
   CheckCircle2,
   ChevronDown,
-  FileSpreadsheet,
   Loader2,
   LogOut,
   Mail,
-  Moon,
-  RefreshCw,
-  Sun,
   UserCog,
 } from 'lucide-react';
 import { useUserProfileContext } from '../contexts/UserProfileContext';
-import type { ThemeMode } from '../utils/theme';
 
 interface UserAvatarProps {
   user: User;
@@ -79,12 +73,7 @@ interface UserProfileMenuProps {
   user: User;
   hasToken: boolean;
   autoSaveState?: 'idle' | 'saving' | 'saved_local' | 'saved_cloud' | 'synced_sheet';
-  themeMode?: ThemeMode;
-  onChangeTheme?: (mode: ThemeMode) => void;
   onEditProfile?: () => void;
-  onReauth: () => void;
-  onSwitchAccount?: () => void;
-  onOpenSheetTab: () => void;
   onSignOut: () => void;
   onRefreshVerification?: () => void;
   onResendVerification?: () => void;
@@ -94,12 +83,7 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
   user,
   hasToken,
   autoSaveState = 'idle',
-  themeMode,
-  onChangeTheme,
   onEditProfile,
-  onReauth,
-  onSwitchAccount,
-  onOpenSheetTab,
   onSignOut,
   onRefreshVerification,
   onResendVerification,
@@ -261,46 +245,6 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
           </div>
 
           <div className="p-2 space-y-1">
-            {themeMode && onChangeTheme && (
-              <div className="px-2.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between gap-2 mb-1">
-                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  រចនាបថផ្ទៃ
-                </span>
-                <div
-                  className="inline-flex items-center p-0.5 rounded-lg bg-slate-200/80 dark:bg-slate-900 border border-slate-300/60 dark:border-slate-700"
-                  role="group"
-                  aria-label="ជ្រើសរើសរចនាបថ"
-                >
-                  <button
-                    type="button"
-                    onClick={() => onChangeTheme('light')}
-                    aria-pressed={themeMode === 'light'}
-                    className={`min-h-[30px] px-2.5 rounded-md text-[11px] font-semibold flex items-center gap-1 transition-all cursor-pointer ${
-                      themeMode === 'light'
-                        ? 'bg-white text-amber-800 border border-amber-200/80 shadow-xs'
-                        : 'border border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                    }`}
-                  >
-                    <Sun className="w-3.5 h-3.5" />
-                    <span>ភ្លឺ</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onChangeTheme('dark')}
-                    aria-pressed={themeMode === 'dark'}
-                    className={`min-h-[30px] px-2.5 rounded-md text-[11px] font-semibold flex items-center gap-1 transition-all cursor-pointer ${
-                      themeMode === 'dark'
-                        ? 'bg-slate-800 text-blue-300 border border-slate-600 shadow-xs'
-                        : 'border border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                    }`}
-                  >
-                    <Moon className="w-3.5 h-3.5" />
-                    <span>ងងឹត</span>
-                  </button>
-                </div>
-              </div>
-            )}
-
             {onEditProfile && (
               <button
                 type="button"
@@ -343,49 +287,6 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
               >
                 <Mail className="w-4 h-4 shrink-0" />
                 <span>ផ្ញើតំណបញ្ជាក់អ៊ីមែលម្តងទៀត</span>
-              </button>
-            )}
-
-            {isVerified && !hasToken && (
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setOpen(false);
-                  onReauth();
-                }}
-                className="w-full min-h-[42px] px-3 rounded-xl text-xs font-semibold text-blue-700 dark:text-blue-300 bg-blue-50/70 dark:bg-blue-950/50 hover:bg-blue-100/80 dark:hover:bg-blue-900/60 flex items-center gap-2.5 transition-colors text-left"
-              >
-                <RefreshCw className="w-4 h-4 shrink-0" />
-                <span>ភ្ជាប់ Google Sheets (ស្រេចចិត្ត)</span>
-              </button>
-            )}
-
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                setOpen(false);
-                onOpenSheetTab();
-              }}
-              className="w-full min-h-[42px] px-3 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2.5 transition-colors text-left"
-            >
-              <FileSpreadsheet className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
-              <span>គ្រប់គ្រងសិស្ស និង Google Sheets</span>
-            </button>
-
-            {onSwitchAccount && (
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setOpen(false);
-                  onSwitchAccount();
-                }}
-                className="w-full min-h-[42px] px-3 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2.5 transition-colors text-left"
-              >
-                <ArrowLeftRight className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
-                <span>ប្តូរគណនីផ្សេង</span>
               </button>
             )}
 
