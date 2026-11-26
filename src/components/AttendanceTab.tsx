@@ -321,6 +321,7 @@ export const AttendanceTab: React.FC<AttendanceTabProps> = ({
     () => getHolidayByDate(holidays, activeYear, activeMonth, activeDay),
     [holidays, activeYear, activeMonth, activeDay]
   );
+  const isDayOff = Boolean(activeDayInfo?.isSunday || activeHoliday);
   const monthHolidays = useMemo(
     () => getHolidaysInMonth(holidays, activeYear, activeMonth),
     [holidays, activeYear, activeMonth]
@@ -445,7 +446,7 @@ export const AttendanceTab: React.FC<AttendanceTabProps> = ({
                 មករៀន
               </span>
               <span className="text-base sm:text-xl font-bold font-mono-num text-emerald-700 dark:text-emerald-300 leading-tight mt-0.5">
-                {dailySummary.present}
+                {isDayOff ? 0 : dailySummary.present}
               </span>
             </div>
 
@@ -650,8 +651,10 @@ export const AttendanceTab: React.FC<AttendanceTabProps> = ({
                           aria-label="មករៀន"
                           title="មករៀន"
                           className={`min-h-[40px] sm:min-h-[42px] rounded-lg text-xs font-semibold flex items-center justify-center transition-all duration-150 active:scale-[0.97] whitespace-nowrap ${
-                            mark === ''
+                            mark === '' && !isDayOff
                               ? 'bg-gradient-to-b from-emerald-500 to-emerald-600 text-white shadow-[0_2px_8px_-2px_rgba(16,185,129,0.45),inset_0_1px_0_rgba(255,255,255,0.22)]'
+                              : isDayOff
+                              ? 'text-slate-500 dark:text-slate-400 hover:bg-white/70 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200'
                               : 'text-slate-600 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-100'
                           }`}
                         >
