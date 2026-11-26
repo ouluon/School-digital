@@ -8,6 +8,7 @@ import {
   ClipboardList,
   CloudUpload,
   ExternalLink,
+  LayoutDashboard,
   Loader2,
   LogIn,
   Mail,
@@ -99,6 +100,7 @@ import {
   getCalendarYearForAcademicMonth,
   parseAcademicYear,
 } from './utils/calculations';
+import { DashboardTab } from './components/DashboardTab';
 import { AttendanceTab } from './components/AttendanceTab';
 import { MonthlyScoresTab } from './components/MonthlyScoresTab';
 import { SemesterResultsTab } from './components/SemesterResultsTab';
@@ -123,7 +125,7 @@ import {
   saveThemeMode,
 } from './utils/theme';
 
-type TabKey = 'attendance' | 'monthly' | 'semester' | 'roster';
+type TabKey = 'dashboard' | 'attendance' | 'monthly' | 'semester' | 'roster';
 
 const DRAFT_STORAGE_KEY_V2 = 'khmer_classbook_draft_v2';
 const DRAFT_STORAGE_KEY_V1 = 'khmer_classbook_draft_v1';
@@ -336,7 +338,7 @@ export default function App() {
   const [draftOwnerUid, setDraftOwnerUid] = useState<string | null>(null);
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => getInitialThemeMode());
 
-  const [activeTab, setActiveTab] = useState<TabKey>('attendance');
+  const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
   const [settings, setSettings] = useState<ClassSettings>(initialDraft.settings);
   const [students, setStudents] = useState<Student[]>(initialDraft.students);
   const [attendanceByMonth, setAttendanceByMonth] = useState<AttendanceByMonth>(
@@ -2493,6 +2495,13 @@ export default function App() {
 
   const activeTabHeader = useMemo(() => {
     switch (activeTab) {
+      case 'dashboard':
+        return {
+          title: 'ផ្ទាំងគ្រប់គ្រង',
+          Icon: LayoutDashboard,
+          iconClass:
+            'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border-indigo-200/80 dark:border-indigo-800/60',
+        };
       case 'attendance':
         return {
           title: 'អវត្តមានប្រចាំខែ',
@@ -2540,7 +2549,7 @@ export default function App() {
           {/* Zone 1: Brand Logo & Wordmark */}
           <button
             type="button"
-            onClick={() => setActiveTab('attendance')}
+            onClick={() => setActiveTab('dashboard')}
             className="min-w-0 flex-1 sm:flex-none flex items-center gap-2 sm:gap-2.5 text-sm sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 whitespace-nowrap text-left hover:text-blue-700 dark:hover:text-blue-400 transition-colors cursor-pointer"
           >
             <img
@@ -2554,6 +2563,17 @@ export default function App() {
 
           {/* Zone 2: Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-1.5 text-sm font-medium text-slate-600 dark:text-slate-300">
+            <button
+              type="button"
+              onClick={() => setActiveTab('dashboard')}
+              className={`px-3 py-1.5 rounded-lg whitespace-nowrap shrink-0 transition-all ${
+                activeTab === 'dashboard'
+                  ? 'bg-blue-50/90 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-semibold shadow-[inset_0_0_0_1px_rgba(59,130,246,0.18)] dark:shadow-[inset_0_0_0_1px_rgba(96,165,250,0.3)]'
+                  : 'hover:bg-slate-100/80 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+              }`}
+            >
+              ផ្ទាំងគ្រប់គ្រង
+            </button>
             <button
               type="button"
               onClick={() => setActiveTab('attendance')}
@@ -2855,6 +2875,20 @@ export default function App() {
         )}
 
         {/* Active Tab View */}
+        {activeTab === 'dashboard' && (
+          <DashboardTab
+            key={user?.uid || 'guest'}
+            user={user}
+            userProfile={userProfile}
+            settings={settings}
+            students={students}
+            attendanceByMonth={attendanceByMonth}
+            onNavigateTab={(tab) => setActiveTab(tab)}
+            onEditProfile={() => setIsProfileModalOpen(true)}
+            onSignIn={() => setAuthModal({ open: true, mode: 'signin' })}
+          />
+        )}
+
         {activeTab === 'attendance' && (
           <AttendanceTab
             key={user?.uid || 'guest'}
@@ -3158,12 +3192,33 @@ export default function App() {
       {/* Mobile Bottom Navigation Bar (64px height, Thumb Zone) */}
       <nav
         aria-label="ម៉ឺនុយចម្បង"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 shadow-[0_-4px_20px_-6px_rgba(15,23,42,0.08)] dark:shadow-[0_-4px_20px_-6px_rgba(0,0,0,0.45)] grid grid-cols-4 items-center px-1"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 shadow-[0_-4px_20px_-6px_rgba(15,23,42,0.08)] dark:shadow-[0_-4px_20px_-6px_rgba(0,0,0,0.45)] grid grid-cols-5 items-center px-0.5"
       >
         <button
           type="button"
+          onClick={() => setActiveTab('dashboard')}
+          className={`h-12 mx-0.5 px-0.5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${
+            activeTab === 'dashboard'
+              ? 'text-indigo-700 dark:text-indigo-300 bg-indigo-50/90 dark:bg-indigo-950/60 shadow-[inset_0_0_0_1px_rgba(99,102,241,0.2)] dark:shadow-[inset_0_0_0_1px_rgba(129,140,248,0.3)]'
+              : 'text-slate-600 dark:text-slate-400'
+          }`}
+        >
+          <LayoutDashboard
+            className={`w-5 h-5 ${
+              activeTab === 'dashboard'
+                ? 'text-indigo-600 dark:text-indigo-300'
+                : 'text-indigo-500 dark:text-indigo-400'
+            }`}
+          />
+          <span className="text-[9.5px] min-[400px]:text-[10.5px] font-semibold leading-none whitespace-nowrap">
+            ផ្ទាំងគ្រប់គ្រង
+          </span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab('attendance')}
-          className={`h-12 mx-0.5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${
+          className={`h-12 mx-0.5 px-0.5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${
             activeTab === 'attendance'
               ? 'text-blue-700 dark:text-blue-300 bg-blue-50/90 dark:bg-blue-950/60 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.18)] dark:shadow-[inset_0_0_0_1px_rgba(96,165,250,0.3)]'
               : 'text-slate-600 dark:text-slate-400'
@@ -3176,13 +3231,15 @@ export default function App() {
                 : 'text-blue-500 dark:text-blue-400'
             }`}
           />
-          <span className="text-[11px] font-semibold leading-none">អវត្តមាន</span>
+          <span className="text-[9.5px] min-[400px]:text-[10.5px] font-semibold leading-none whitespace-nowrap">
+            អវត្តមាន
+          </span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('monthly')}
-          className={`h-12 mx-0.5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${
+          className={`h-12 mx-0.5 px-0.5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${
             activeTab === 'monthly'
               ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-50/90 dark:bg-emerald-950/60 shadow-[inset_0_0_0_1px_rgba(16,185,129,0.2)] dark:shadow-[inset_0_0_0_1px_rgba(52,211,153,0.3)]'
               : 'text-slate-600 dark:text-slate-400'
@@ -3195,13 +3252,15 @@ export default function App() {
                 : 'text-emerald-500 dark:text-emerald-400'
             }`}
           />
-          <span className="text-[11px] font-semibold leading-none">ពិន្ទុខែ</span>
+          <span className="text-[9.5px] min-[400px]:text-[10.5px] font-semibold leading-none whitespace-nowrap">
+            ពិន្ទុខែ
+          </span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('semester')}
-          className={`h-12 mx-0.5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${
+          className={`h-12 mx-0.5 px-0.5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${
             activeTab === 'semester'
               ? 'text-amber-700 dark:text-amber-300 bg-amber-50/90 dark:bg-amber-950/60 shadow-[inset_0_0_0_1px_rgba(245,158,11,0.22)] dark:shadow-[inset_0_0_0_1px_rgba(251,191,36,0.3)]'
               : 'text-slate-600 dark:text-slate-400'
@@ -3214,7 +3273,7 @@ export default function App() {
                 : 'text-amber-500 dark:text-amber-400'
             }`}
           />
-          <span className="text-[10px] min-[400px]:text-[11px] font-semibold leading-none whitespace-nowrap">
+          <span className="text-[9px] min-[400px]:text-[10px] font-semibold leading-none whitespace-nowrap">
             ឆមាស/ប្រចាំឆ្នាំ
           </span>
         </button>
@@ -3222,7 +3281,7 @@ export default function App() {
         <button
           type="button"
           onClick={() => setActiveTab('roster')}
-          className={`h-12 mx-0.5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${
+          className={`h-12 mx-0.5 px-0.5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all active:scale-95 ${
             activeTab === 'roster'
               ? 'text-violet-700 dark:text-violet-300 bg-violet-50/90 dark:bg-violet-950/60 shadow-[inset_0_0_0_1px_rgba(139,92,246,0.2)] dark:shadow-[inset_0_0_0_1px_rgba(167,139,250,0.3)]'
               : 'text-slate-600 dark:text-slate-400'
@@ -3235,7 +3294,9 @@ export default function App() {
                 : 'text-violet-500 dark:text-violet-400'
             }`}
           />
-          <span className="text-[11px] font-semibold leading-none whitespace-nowrap">គ្រូ/សិស្ស</span>
+          <span className="text-[9.5px] min-[400px]:text-[10.5px] font-semibold leading-none whitespace-nowrap">
+            គ្រូ/សិស្ស
+          </span>
         </button>
       </nav>
 
