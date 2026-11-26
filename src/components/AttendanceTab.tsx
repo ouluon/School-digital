@@ -4,11 +4,15 @@ import {
   CalendarDays,
   Check,
   CheckCheck,
+  Clock3,
   FileText,
   Pencil,
   Search,
   Smartphone,
   Table2,
+  UserCheck,
+  UserX,
+  Users,
   X,
 } from 'lucide-react';
 import { TelegramButton } from './TelegramButton';
@@ -419,6 +423,57 @@ export const AttendanceTab: React.FC<AttendanceTabProps> = ({
 
       {viewMode === 'mobile' ? (
         <>
+          {/* Daily Summary 4 Separate Soft-Colored Cards in 1 Row */}
+          <div className="grid grid-cols-4 gap-2 sm:gap-3">
+            <div className="rounded-2xl border border-blue-200/80 dark:border-blue-800/60 bg-blue-50/85 dark:bg-blue-950/35 px-1.5 py-2.5 sm:px-3 sm:py-3 flex flex-col items-center justify-center text-center shadow-xs min-w-0">
+              <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-blue-100/90 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-1 shrink-0">
+                <Users className="w-4 h-4" />
+              </span>
+              <span className="text-[11px] sm:text-xs font-semibold text-blue-900/85 dark:text-blue-200 leading-tight truncate max-w-full">
+                សិស្សសរុប
+              </span>
+              <span className="text-base sm:text-xl font-bold font-mono-num text-blue-700 dark:text-blue-300 leading-tight mt-0.5">
+                {students.length}
+              </span>
+            </div>
+
+            <div className="rounded-2xl border border-emerald-200/80 dark:border-emerald-800/60 bg-emerald-50/85 dark:bg-emerald-950/35 px-1.5 py-2.5 sm:px-3 sm:py-3 flex flex-col items-center justify-center text-center shadow-xs min-w-0">
+              <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-100/90 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-1 shrink-0">
+                <UserCheck className="w-4 h-4" />
+              </span>
+              <span className="text-[11px] sm:text-xs font-semibold text-emerald-800 dark:text-emerald-200 leading-tight truncate max-w-full">
+                មករៀន
+              </span>
+              <span className="text-base sm:text-xl font-bold font-mono-num text-emerald-700 dark:text-emerald-300 leading-tight mt-0.5">
+                {dailySummary.present}
+              </span>
+            </div>
+
+            <div className="rounded-2xl border border-amber-200/80 dark:border-amber-800/60 bg-amber-50/85 dark:bg-amber-950/35 px-1.5 py-2.5 sm:px-3 sm:py-3 flex flex-col items-center justify-center text-center shadow-xs min-w-0">
+              <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-100/90 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-1 shrink-0">
+                <Clock3 className="w-4 h-4" />
+              </span>
+              <span className="text-[11px] sm:text-xs font-semibold text-amber-800 dark:text-amber-200 leading-tight truncate max-w-full">
+                ច្បាប់/ឈឺ
+              </span>
+              <span className="text-base sm:text-xl font-bold font-mono-num text-amber-700 dark:text-amber-300 leading-tight mt-0.5">
+                {dailySummary.excused}
+              </span>
+            </div>
+
+            <div className="rounded-2xl border border-rose-200/80 dark:border-rose-800/60 bg-rose-50/85 dark:bg-rose-950/35 px-1.5 py-2.5 sm:px-3 sm:py-3 flex flex-col items-center justify-center text-center shadow-xs min-w-0">
+              <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-rose-100/90 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-1 shrink-0">
+                <UserX className="w-4 h-4" />
+              </span>
+              <span className="text-[11px] sm:text-xs font-semibold text-rose-800 dark:text-rose-200 leading-tight truncate max-w-full">
+                អត់ច្បាប់
+              </span>
+              <span className="text-base sm:text-xl font-bold font-mono-num text-rose-700 dark:text-rose-300 leading-tight mt-0.5">
+                {dailySummary.unexcused}
+              </span>
+            </div>
+          </div>
+
           {/* Horizontal Date Scroller */}
           <div className="w-full min-w-0 surface-card rounded-2xl p-3 space-y-2.5">
             <div className="flex flex-wrap items-center justify-between gap-2 px-1">
@@ -521,50 +576,6 @@ export const AttendanceTab: React.FC<AttendanceTabProps> = ({
                 );
               })}
             </HorizontalScrollStrip>
-
-          </div>
-
-          {/* Daily Summary Single-Row Card */}
-          <div className="surface-card rounded-2xl overflow-hidden">
-            <div className="grid grid-cols-4 divide-x divide-slate-200/80 dark:divide-slate-700/80">
-              <div className="px-2 sm:px-4 py-2.5 sm:py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-2 text-center sm:text-left min-w-0">
-                <span className="text-[11px] sm:text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
-                  សិស្សសរុប
-                </span>
-                <span className="text-base sm:text-lg font-bold font-mono-num text-slate-900 dark:text-slate-100">
-                  {students.length}
-                </span>
-              </div>
-              <div className="px-2 sm:px-4 py-2.5 sm:py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-2 text-center sm:text-left min-w-0">
-                <span className="text-[11px] sm:text-xs font-medium text-emerald-700 dark:text-emerald-400 truncate">
-                  មករៀន
-                </span>
-                <span className="text-base sm:text-lg font-bold font-mono-num text-emerald-700 dark:text-emerald-400">
-                  {dailySummary.present}
-                </span>
-              </div>
-              <div className="px-2 sm:px-4 py-2.5 sm:py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-2 text-center sm:text-left min-w-0">
-                <span className="text-[11px] sm:text-xs font-medium text-amber-700 dark:text-amber-400 truncate">
-                  ច្ប / ឈ
-                </span>
-                <span className="text-base sm:text-lg font-bold font-mono-num text-amber-700 dark:text-amber-400">
-                  {dailySummary.excused}
-                </span>
-              </div>
-              <div className="px-2 sm:px-4 py-2.5 sm:py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-2 text-center sm:text-left min-w-0">
-                <span className="text-[11px] sm:text-xs font-medium text-rose-700 dark:text-rose-400 truncate">
-                  <span className="sm:hidden">អច្ប</span>
-                  <span className="hidden sm:inline">អត់ច្បាប់ (អច្ប)</span>
-                </span>
-                <span className="text-base sm:text-lg font-bold font-mono-num text-rose-700 dark:text-rose-400">
-                  {dailySummary.unexcused}
-                </span>
-              </div>
-            </div>
-            <div
-              className="h-[3px] w-full bg-emerald-500 dark:bg-emerald-400"
-              aria-hidden="true"
-            />
           </div>
 
           {/* Search & Bulk Action */}
