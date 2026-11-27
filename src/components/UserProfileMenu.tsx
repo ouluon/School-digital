@@ -5,12 +5,11 @@ import {
   Check,
   CheckCircle2,
   ChevronDown,
-  FileSpreadsheet,
+  CircleUserRound,
   Loader2,
   LogOut,
   Mail,
   School,
-  UserCog,
 } from 'lucide-react';
 import { useUserProfileContext } from '../contexts/UserProfileContext';
 
@@ -251,18 +250,18 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
           </div>
 
           <div className="p-2 space-y-1">
-            {onEditProfile && (
+            {onOpenAccountInfo && (
               <button
                 type="button"
                 role="menuitem"
                 onClick={() => {
                   setOpen(false);
-                  onEditProfile();
+                  onOpenAccountInfo();
                 }}
                 className="w-full min-h-[42px] px-3 rounded-xl text-xs font-semibold text-blue-800 dark:text-blue-200 bg-blue-50/70 dark:bg-blue-950/40 hover:bg-blue-100/80 dark:hover:bg-blue-900/60 flex items-center gap-2.5 transition-colors text-left cursor-pointer"
               >
-                <UserCog className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                <span>កែប្រែព័ត៌មានផ្ទាល់ខ្លួន និងរូបថត</span>
+                <CircleUserRound className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                <span>ព័ត៌មានគណនី</span>
               </button>
             )}
 
@@ -278,21 +277,6 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
               >
                 <School className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                 <span>ព័ត៌មានសាលារៀន/ថ្នាក់រៀន</span>
-              </button>
-            )}
-
-            {onOpenAccountInfo && (
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setOpen(false);
-                  onOpenAccountInfo();
-                }}
-                className="w-full min-h-[42px] px-3 rounded-xl text-xs font-semibold text-emerald-800 dark:text-emerald-200 bg-emerald-50/70 dark:bg-emerald-950/40 hover:bg-emerald-100/80 dark:hover:bg-emerald-900/60 flex items-center gap-2.5 transition-colors text-left cursor-pointer"
-              >
-                <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span>ព័ត៌មានគណនី</span>
               </button>
             )}
 
