@@ -107,6 +107,7 @@ import { SemesterResultsTab } from './components/SemesterResultsTab';
 import { RosterAndSheetTab } from './components/RosterAndSheetTab';
 import { AuthModal, AuthModalMode } from './components/AuthModal';
 import { AccountProfileModal } from './components/AccountProfileModal';
+import { AccountSheetsModal } from './components/AccountSheetsModal';
 import { SchoolClassInfoModal } from './components/SchoolClassInfoModal';
 import { UserProfileMenu } from './components/UserProfileMenu';
 import { ConfirmSyncModal, PendingSyncSummary } from './components/ConfirmSyncModal';
@@ -370,6 +371,7 @@ export default function App() {
   const [userProfile, setUserProfile] = useState<UserProfileData | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSchoolInfoModalOpen, setIsSchoolInfoModalOpen] = useState(false);
+  const [isAccountSheetsModalOpen, setIsAccountSheetsModalOpen] = useState(false);
   const [authRefreshTick, setAuthRefreshTick] = useState(0);
   const [hasToken, setHasToken] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -2707,6 +2709,7 @@ export default function App() {
                   autoSaveState={autoSaveState}
                   onEditProfile={() => setIsProfileModalOpen(true)}
                   onOpenSchoolInfo={() => setIsSchoolInfoModalOpen(true)}
+                  onOpenAccountInfo={() => setIsAccountSheetsModalOpen(true)}
                   onSignOut={handleSignOut}
                   onRefreshVerification={handleRefreshVerification}
                   onResendVerification={handleResendVerification}
@@ -3101,12 +3104,6 @@ export default function App() {
           <RosterAndSheetTab
             key={user?.uid || 'guest'}
             user={user}
-            userProfile={userProfile}
-            hasToken={hasToken}
-            isLoggingIn={isLoggingIn}
-            activeSheet={activeSheet}
-            driveFiles={driveFiles}
-            isLoadingFiles={isLoadingFiles}
             settings={settings}
             students={students}
             attendance={currentAttendance}
@@ -3116,16 +3113,7 @@ export default function App() {
             domainGrades={currentDomainGrades}
             remarks={remarks}
             onSignIn={() => void handleSignIn(false)}
-            onSignInRedirect={handleSignInRedirect}
             onOpenAuthModal={(mode) => setAuthModal({ open: true, mode })}
-            onEditProfile={() => setIsProfileModalOpen(true)}
-            onResendVerification={handleResendVerification}
-            onRefreshVerification={handleRefreshVerification}
-            isCheckingVerification={isCheckingVerification}
-            onSignOut={handleSignOut}
-            onRefreshDriveFiles={() => refreshDriveFiles()}
-            onRequestCreateSheet={(title) => openCreateSheetConfirm(title)}
-            onLoadSheetById={handleLoadSheetById}
             onAddStudent={handleAddStudent}
             onUpdateStudent={handleUpdateStudent}
             onDeleteStudent={handleDeleteStudent}
@@ -3367,6 +3355,31 @@ export default function App() {
             text: 'បានរក្សាទុកព័ត៌មានសាលារៀន និងថ្នាក់រៀនរួចរាល់។',
           });
         }}
+      />
+
+      {/* Account & Google Sheets Modal */}
+      <AccountSheetsModal
+        open={isAccountSheetsModalOpen}
+        user={user}
+        userProfile={userProfile}
+        hasToken={hasToken}
+        isLoggingIn={isLoggingIn}
+        activeSheet={activeSheet}
+        driveFiles={driveFiles}
+        isLoadingFiles={isLoadingFiles}
+        settings={settings}
+        onClose={() => setIsAccountSheetsModalOpen(false)}
+        onSignIn={() => void handleSignIn(false)}
+        onSignInRedirect={handleSignInRedirect}
+        onOpenAuthModal={(mode) => setAuthModal({ open: true, mode })}
+        onEditProfile={() => setIsProfileModalOpen(true)}
+        onResendVerification={handleResendVerification}
+        onRefreshVerification={handleRefreshVerification}
+        isCheckingVerification={isCheckingVerification}
+        onSignOut={handleSignOut}
+        onRefreshDriveFiles={() => refreshDriveFiles()}
+        onRequestCreateSheet={(title) => openCreateSheetConfirm(title)}
+        onLoadSheetById={handleLoadSheetById}
       />
 
       {/* Non-blocking Recording / Auto-Save Toast Notification */}

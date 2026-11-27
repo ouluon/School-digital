@@ -5,6 +5,7 @@ import {
   Check,
   CheckCircle2,
   ChevronDown,
+  FileSpreadsheet,
   Loader2,
   LogOut,
   Mail,
@@ -76,6 +77,7 @@ interface UserProfileMenuProps {
   autoSaveState?: 'idle' | 'saving' | 'saved_local' | 'saved_cloud' | 'synced_sheet';
   onEditProfile?: () => void;
   onOpenSchoolInfo?: () => void;
+  onOpenAccountInfo?: () => void;
   onSignOut: () => void;
   onRefreshVerification?: () => void;
   onResendVerification?: () => void;
@@ -87,6 +89,7 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
   autoSaveState = 'idle',
   onEditProfile,
   onOpenSchoolInfo,
+  onOpenAccountInfo,
   onSignOut,
   onRefreshVerification,
   onResendVerification,
@@ -275,6 +278,21 @@ export const UserProfileMenu: React.FC<UserProfileMenuProps> = ({
               >
                 <School className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                 <span>ព័ត៌មានសាលារៀន/ថ្នាក់រៀន</span>
+              </button>
+            )}
+
+            {onOpenAccountInfo && (
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false);
+                  onOpenAccountInfo();
+                }}
+                className="w-full min-h-[42px] px-3 rounded-xl text-xs font-semibold text-emerald-800 dark:text-emerald-200 bg-emerald-50/70 dark:bg-emerald-950/40 hover:bg-emerald-100/80 dark:hover:bg-emerald-900/60 flex items-center gap-2.5 transition-colors text-left cursor-pointer"
+              >
+                <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>ព័ត៌មានគណនី</span>
               </button>
             )}
 
