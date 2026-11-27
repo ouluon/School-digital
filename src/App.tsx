@@ -2889,6 +2889,7 @@ export default function App() {
             settings={settings}
             students={students}
             attendanceByMonth={attendanceByMonth}
+            monthlyScoresByMonth={monthlyScoresByMonth}
             onNavigateTab={(tab) => setActiveTab(tab)}
             onEditProfile={() => setIsProfileModalOpen(true)}
             onSignIn={() => setAuthModal({ open: true, mode: 'signin' })}
