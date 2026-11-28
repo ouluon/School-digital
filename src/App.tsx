@@ -2508,7 +2508,7 @@ export default function App() {
         };
       case 'attendance':
         return {
-          title: 'អវត្តមានប្រចាំខែ',
+          title: 'វត្តមានប្រចាំខែ',
           Icon: CalendarCheck,
           iconClass:
             'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border-blue-200/80 dark:border-blue-800/60',
@@ -2530,7 +2530,7 @@ export default function App() {
       case 'roster':
       default:
         return {
-          title: 'ព័ត៌មានគ្រូ/សិស្ស',
+          title: 'ព័ត៌មានសិស្ស',
           Icon: Users,
           iconClass:
             'bg-violet-50 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400 border-violet-200/80 dark:border-violet-800/60',
@@ -2587,7 +2587,7 @@ export default function App() {
                   : 'hover:bg-slate-100/80 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
               }`}
             >
-              អវត្តមាន
+              វត្តមាន
             </button>
             <button
               type="button"
@@ -2620,7 +2620,7 @@ export default function App() {
                   : 'hover:bg-slate-100/80 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
               }`}
             >
-              សិស្ស និង Sheet
+              ព័ត៌មានសិស្ស
             </button>
           </nav>
 
@@ -3220,7 +3220,7 @@ export default function App() {
             }`}
           />
           <span className="text-[9.5px] min-[400px]:text-[10.5px] font-semibold leading-none whitespace-nowrap">
-            អវត្តមាន
+            វត្តមាន
           </span>
         </button>
 
@@ -3283,7 +3283,7 @@ export default function App() {
             }`}
           />
           <span className="text-[9.5px] min-[400px]:text-[10.5px] font-semibold leading-none whitespace-nowrap">
-            គ្រូ/សិស្ស
+            ព័ត៌មានសិស្ស
           </span>
         </button>
       </nav>

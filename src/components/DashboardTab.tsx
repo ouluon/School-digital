@@ -627,7 +627,7 @@ export const DashboardTab: React.FC<DashboardTabProps> = ({
     },
     {
       key: 'roster',
-      label: 'ព័ត៌មានគ្រូ/សិស្ស',
+      label: 'ព័ត៌មានសិស្ស',
       Icon: Users,
       gradientClass:
         'bg-gradient-to-br from-violet-500 via-violet-600 to-purple-600',
